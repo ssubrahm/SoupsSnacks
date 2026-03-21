@@ -8,7 +8,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = [
-            'id', 'name', 'mobile', 'email', 'address', 
+            'id', 'name', 'mobile', 'email', 'apartment_name', 'block', 'address', 
             'notes', 'is_active', 'status', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'status']
@@ -25,5 +25,5 @@ class CustomerListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Customer
-        fields = ['id', 'name', 'mobile', 'email', 'is_active', 'status', 'created_at']
+        fields = ['id', 'name', 'mobile', 'email', 'apartment_name', 'block', 'is_active', 'status', 'created_at']
         read_only_fields = ['id', 'created_at', 'status']

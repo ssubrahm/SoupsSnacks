@@ -83,9 +83,46 @@
 
 .filters-section {
   display: flex;
+  flex-direction: column;
   gap: 1rem;
   margin-bottom: 2rem;
+}
+
+.filter-row {
+  display: flex;
+  gap: 1.5rem;
   flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.filter-select {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
 }
 
 .search-box {
@@ -279,10 +316,16 @@
     padding: 0.75rem 0.5rem;
   }
 
-  .customers-table th:nth-child(3),
-  .customers-table td:nth-child(3),
-  .customers-table th:nth-child(5),
-  .customers-table td:nth-child(5) {
+  .customers-table .hide-mobile {
     display: none;
+  }
+  
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-select {
+    min-width: auto;
   }
 }

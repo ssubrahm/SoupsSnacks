@@ -12,6 +12,8 @@ const CustomerForm = () => {
     name: '',
     mobile: '',
     email: '',
+    apartment_name: '',
+    block: '',
     address: '',
     notes: '',
     is_active: true
@@ -179,19 +181,49 @@ const CustomerForm = () => {
           </div>
 
           <div className="form-section">
-            <h3>Additional Details</h3>
+            <h3>Location Details</h3>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="apartment_name">Apartment Name</label>
+                <input
+                  type="text"
+                  id="apartment_name"
+                  name="apartment_name"
+                  value={formData.apartment_name}
+                  onChange={handleChange}
+                  placeholder="e.g., Prestige Shantiniketan (optional)"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="block">Block / Tower</label>
+                <input
+                  type="text"
+                  id="block"
+                  name="block"
+                  value={formData.block}
+                  onChange={handleChange}
+                  placeholder="e.g., Tower A, Phase 1 (optional)"
+                />
+              </div>
+            </div>
 
             <div className="form-group">
-              <label htmlFor="address">Address</label>
+              <label htmlFor="address">Full Address</label>
               <textarea
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
                 rows="3"
-                placeholder="Full address (optional)"
+                placeholder="Complete address including flat number (optional)"
               />
             </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Additional Details</h3>
 
             <div className="form-group">
               <label htmlFor="notes">Notes</label>

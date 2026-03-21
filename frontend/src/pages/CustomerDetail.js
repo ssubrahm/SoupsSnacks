@@ -93,9 +93,23 @@ const CustomerDetail = () => {
             </div>
           )}
 
+          {customer.apartment_name && (
+            <div className="detail-item">
+              <div className="detail-label">Apartment</div>
+              <div className="detail-value">{customer.apartment_name}</div>
+            </div>
+          )}
+
+          {customer.block && (
+            <div className="detail-item">
+              <div className="detail-label">Block / Tower</div>
+              <div className="detail-value">{customer.block}</div>
+            </div>
+          )}
+
           {customer.address && (
             <div className="detail-item">
-              <div className="detail-label">Address</div>
+              <div className="detail-label">Full Address</div>
               <div className="detail-value address">{customer.address}</div>
             </div>
           )}

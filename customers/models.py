@@ -22,6 +22,18 @@ class Customer(models.Model):
         null=True,
         help_text='Customer email address'
     )
+    apartment_name = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text='Apartment or building name'
+    )
+    block = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text='Block or tower number'
+    )
     address = models.TextField(
         blank=True,
         null=True,
@@ -47,6 +59,8 @@ class Customer(models.Model):
             models.Index(fields=['name']),
             models.Index(fields=['mobile']),
             models.Index(fields=['is_active']),
+            models.Index(fields=['apartment_name']),
+            models.Index(fields=['block']),
         ]
     
     def __str__(self):
