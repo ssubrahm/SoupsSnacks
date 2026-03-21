@@ -7,18 +7,36 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const response = await api.get('/health/');
-        setHealth(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
+  const checkHealth = async () => {
+    setLoading(true);
+    setError(null);
     
+    try {
+      const response = await api.get('/health/');
+      setHealth(response.data);
+      setLoading(false);
+      setError(null);
+    } catch (err) {
+      console.error('API Health Check Error:', err);
+      let errorMessage = 'Unknown error';
+      
+      if (err.response) {
+        // Server responded with error
+        errorMessage = `Server Error: ${err.response.status} - ${err.response.statusText}`;
+      } else if (err.request) {
+        // Request made but no response
+        errorMessage = 'Cannot connect to backend. Is the Django server running on http://localhost:8000?';
+      } else {
+        // Other errors
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     checkHealth();
   }, []);
 
@@ -65,9 +83,43 @@ const Dashboard = () => {
           </p>
         )}
         {error && (
-          <p className="error">
-            ✗ Connection Error: {error}
-          </p>
+          <div>
+            <p className="error">
+              ✗ {error}
+            </p>
+            <button 
+              onClick={checkHealth} 
+              className="retry-button"
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: '500',
+                fontSize: '0.875rem'
+              }}
+            >
+              🔄 Retry Connection
+            </button>
+            <div style={{ 
+              marginTop: '1rem', 
+              padding: '1rem', 
+              background: '#FFF5F5', 
+              borderRadius: '6px',
+              fontSize: '0.875rem',
+              color: '#718096'
+            }}>
+              <strong>Troubleshooting:</strong>
+              <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
+                <li>Ensure Django server is running: <code>python manage.py runserver</code></li>
+                <li>Check backend at: <a href="http://localhost:8000/api/health/" target="_blank" rel="noopener noreferrer">http://localhost:8000/api/health/</a></li>
+                <li>Check browser console (F12) for detailed errors</li>
+              </ul>
+            </div>
+          </div>
         )}
         {health && (
           <div className="success">
