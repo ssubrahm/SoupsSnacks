@@ -1,0 +1,140 @@
+.customer-detail-page {
+  max-width: 1200px;
+  animation: fadeIn 0.4s ease-in;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.detail-header h2 {
+  margin: 0 0 0.75rem 0;
+  color: var(--text-primary);
+  font-size: 2rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  padding: 2rem;
+}
+
+.detail-card h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.detail-item {
+  margin-bottom: 1.5rem;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.detail-value a {
+  color: var(--primary-dark);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.detail-value a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.detail-value.address,
+.detail-value.notes {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.empty-state-small {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-secondary);
+}
+
+.empty-state-small p {
+  margin: 0.5rem 0;
+}
+
+.empty-state-small .hint {
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+.error-page {
+  text-align: center;
+  padding: 3rem;
+}
+
+.error-page h2 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.error-page p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .detail-header {
+    flex-direction: column;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn-primary,
+  .header-actions .btn-secondary {
+    flex: 1;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-card {
+    padding: 1.5rem;
+  }
+}

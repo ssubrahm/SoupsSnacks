@@ -6,6 +6,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
+import Customers from './pages/Customers';
+import CustomerForm from './pages/CustomerForm';
+import CustomerDetail from './pages/CustomerDetail';
 import './App.css';
 
 function App() {
@@ -29,10 +32,37 @@ function App() {
             element={
               <ProtectedRoute requiredRole="operator">
                 <Layout>
-                  <div style={{ padding: '2rem' }}>
-                    <h2>👥 Customers</h2>
-                    <p>Customer management - Coming in Step 3</p>
-                  </div>
+                  <Customers />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customers/new"
+            element={
+              <ProtectedRoute requiredRole="operator">
+                <Layout>
+                  <CustomerForm />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customers/:id"
+            element={
+              <ProtectedRoute requiredRole="operator">
+                <Layout>
+                  <CustomerDetail />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/customers/:id/edit"
+            element={
+              <ProtectedRoute requiredRole="operator">
+                <Layout>
+                  <CustomerForm />
                 </Layout>
               </ProtectedRoute>
             }
