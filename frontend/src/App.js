@@ -9,6 +9,9 @@ import Users from './pages/Users';
 import Customers from './pages/Customers';
 import CustomerForm from './pages/CustomerForm';
 import CustomerDetail from './pages/CustomerDetail';
+import Products from './pages/Products';
+import ProductForm from './pages/ProductForm';
+import ProductDetail from './pages/ProductDetail';
 import './App.css';
 
 function App() {
@@ -72,10 +75,37 @@ function App() {
             element={
               <ProtectedRoute requiredRole="cook">
                 <Layout>
-                  <div style={{ padding: '2rem' }}>
-                    <h2>🍛 Menu Catalog</h2>
-                    <p>Menu and product management - Coming in Step 4</p>
-                  </div>
+                  <Products />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/catalog/new"
+            element={
+              <ProtectedRoute requiredRole="cook">
+                <Layout>
+                  <ProductForm />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/catalog/:id"
+            element={
+              <ProtectedRoute requiredRole="cook">
+                <Layout>
+                  <ProductDetail />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/catalog/:id/edit"
+            element={
+              <ProtectedRoute requiredRole="cook">
+                <Layout>
+                  <ProductForm />
                 </Layout>
               </ProtectedRoute>
             }
