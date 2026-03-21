@@ -91,10 +91,10 @@ git push -u origin main
 cd /Users/Srinath.Subrahmanyan/SoupsSnacks
 
 # Create virtual environment
-python3 -m venv venv
+python3 -m venv SSCo
 
 # Activate it
-source venv/bin/activate
+source SSCo/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt

@@ -21,7 +21,7 @@ echo ""
 
 # Start backend in a new terminal
 echo "🚀 Starting Django backend server..."
-osascript -e 'tell application "Terminal" to do script "cd /Users/Srinath.Subrahmanyan/SoupsSnacks && source venv/bin/activate && python manage.py runserver"'
+osascript -e 'tell application "Terminal" to do script "cd /Users/Srinath.Subrahmanyan/SoupsSnacks && source SSCo/bin/activate && python manage.py runserver"'
 echo "✓ Backend starting in new terminal (http://localhost:8000)"
 echo ""
 

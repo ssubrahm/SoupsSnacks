@@ -53,8 +53,8 @@ SoupsSnacks/
 
 2. **Create and activate a virtual environment (recommended):**
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   python3 -m venv SSCo
+   source SSCo/bin/activate  # On Windows: SSCo\Scripts\activate
    ```
 
 3. **Install Python dependencies:**
@@ -168,6 +168,7 @@ The application will be built incrementally following this sequence:
 
 ### Django
 ```bash
+source SSCo/bin/activate                # Activate virtual environment
 python manage.py runserver              # Start server
 python manage.py makemigrations         # Create migrations
 python manage.py migrate                # Apply migrations
