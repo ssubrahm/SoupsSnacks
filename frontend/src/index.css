@@ -13,7 +13,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #F7FAFC;
+  background: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 code {

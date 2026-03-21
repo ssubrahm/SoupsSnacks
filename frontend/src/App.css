@@ -15,8 +15,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
   line-height: 1.5;
-  color: #2D3748;
-  background: #F7FAFC;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
@@ -35,13 +36,13 @@ html {
 
 /* Selection color */
 ::selection {
-  background: rgba(255, 142, 83, 0.3);
-  color: #2D3748;
+  background: rgba(212, 175, 55, 0.3);
+  color: var(--text-primary);
 }
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid #FF8E53;
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 

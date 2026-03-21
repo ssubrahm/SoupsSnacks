@@ -46,28 +46,28 @@ const Dashboard = () => {
       value: '0',
       label: 'Total Customers',
       icon: '👥',
-      color: '#FF6B6B'
+      color: '#7CB342'
     },
     {
       title: 'Orders',
       value: '0',
       label: 'Pending Orders',
-      icon: '📦',
-      color: '#4ECDC4'
+      icon: '🥘',
+      color: '#D4AF37'
     },
     {
       title: 'Products',
       value: '0',
-      label: 'Active Products',
-      icon: '🍲',
-      color: '#95E1D3'
+      label: 'Active Menu Items',
+      icon: '🍛',
+      color: '#E8B84D'
     },
     {
       title: 'Revenue',
       value: '$0.00',
       label: 'This Month',
       icon: '💰',
-      color: '#FFE66D'
+      color: '#C65D3B'
     }
   ];
 
