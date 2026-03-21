@@ -1,0 +1,243 @@
+.product-form-page {
+  max-width: 1400px;
+  animation: fadeIn 0.4s ease-in;
+}
+
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.form-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Cost Components */
+.empty-components {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--bg-accent);
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+
+.empty-components p {
+  margin-bottom: 1.5rem;
+}
+
+.cost-components-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cost-component-item {
+  background: var(--bg-accent);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.component-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.component-number {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 0.875rem;
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: #E67E22;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-remove:hover {
+  color: #C0392B;
+  transform: scale(1.05);
+}
+
+.component-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.calculated-value {
+  padding: 0.875rem 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+/* Summary Sidebar */
+.form-sidebar {
+  position: relative;
+}
+
+.summary-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--primary-color);
+}
+
+.summary-card.sticky {
+  position: sticky;
+  top: 2rem;
+}
+
+.summary-card h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-primary);
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  font-size: 0.9375rem;
+}
+
+.summary-item.divider {
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  border-top: 2px solid var(--border-color);
+  font-weight: 700;
+}
+
+.summary-item .label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.summary-item .value {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.summary-item .value.price {
+  color: var(--primary-dark);
+}
+
+.summary-item .value.cost {
+  color: #E67E22;
+}
+
+.summary-item .value.profit {
+  color: var(--accent-green);
+  font-size: 1.25rem;
+}
+
+.summary-item .value.profit.negative {
+  color: #C0392B;
+}
+
+.summary-item .value.margin.high {
+  color: var(--accent-green);
+}
+
+.summary-item .value.margin.medium {
+  color: #E8B84D;
+}
+
+.summary-item .value.margin.low {
+  color: #E67E22;
+}
+
+.warning-box {
+  background: #FEE;
+  border: 1px solid #FCC;
+  color: #C00;
+  padding: 0.875rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.info-box {
+  background: #FFF8E7;
+  border: 1px solid #E8D5B7;
+  color: #8B6914;
+  padding: 0.875rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.summary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--border-color);
+}
+
+.summary-actions .btn-primary,
+.summary-actions .btn-secondary {
+  width: 100%;
+}
+
+.hint {
+  font-size: 0.8125rem;
+  color: var(--text-light);
+  font-style: italic;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card.sticky {
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .component-fields .form-row {
+    grid-template-columns: 1fr;
+  }
+}
