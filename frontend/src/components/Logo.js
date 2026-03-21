@@ -25,27 +25,30 @@ const Logo = ({ size = 40 }) => {
         opacity="0.3"
       />
       
-      {/* Steam lines - Golden */}
+      {/* Steam lines - White with subtle shadow for visibility */}
       <path 
         d="M35 35 Q33 28 35 22" 
-        stroke="#D4AF37" 
-        strokeWidth="2.5" 
+        stroke="#FFFFFF" 
+        strokeWidth="3" 
         strokeLinecap="round"
-        opacity="0.7"
+        opacity="0.9"
+        filter="url(#steam-glow)"
       />
       <path 
         d="M50 32 Q48 25 50 18" 
-        stroke="#E8B84D" 
-        strokeWidth="2.5" 
+        stroke="#FFFFFF" 
+        strokeWidth="3" 
         strokeLinecap="round"
-        opacity="0.8"
+        opacity="0.95"
+        filter="url(#steam-glow)"
       />
       <path 
         d="M65 35 Q67 28 65 22" 
-        stroke="#D4AF37" 
-        strokeWidth="2.5" 
+        stroke="#FFFFFF" 
+        strokeWidth="3" 
         strokeLinecap="round"
-        opacity="0.7"
+        opacity="0.9"
+        filter="url(#steam-glow)"
       />
       
       {/* Food elements in bowl - Indian-inspired colors */}
@@ -57,13 +60,20 @@ const Logo = ({ size = 40 }) => {
       {/* Soup surface - Creamy */}
       <ellipse cx="50" cy="45" rx="24" ry="3" fill="#FFF8E7" opacity="0.4" />
       
-      {/* Gradient definitions */}
+      {/* Gradient and filter definitions */}
       <defs>
         <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#D4AF37" />
           <stop offset="50%" stopColor="#E8B84D" />
           <stop offset="100%" stopColor="#F4D03F" />
         </linearGradient>
+        <filter id="steam-glow">
+          <feGaussianBlur stdDeviation="0.5" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
       </defs>
     </svg>
   );
