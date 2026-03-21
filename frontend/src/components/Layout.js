@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Logo from './Logo';
 import './Layout.css';
 
 const Layout = ({ children }) => {
@@ -11,10 +12,17 @@ const Layout = ({ children }) => {
         <button 
           className="menu-toggle"
           onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle menu"
         >
           ☰
         </button>
-        <h1>Soups, Snacks, and More</h1>
+        <div className="header-brand">
+          <Logo size={45} />
+          <div className="header-text">
+            <h1>Soups, Snacks & More</h1>
+            <span className="header-subtitle">Order Management System</span>
+          </div>
+        </div>
       </header>
       
       <div className="main-container">
