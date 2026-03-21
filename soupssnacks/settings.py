@@ -162,5 +162,11 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Session settings for proper cookie handling
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Frontend needs to read this
+
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
