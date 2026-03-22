@@ -14,6 +14,7 @@ const DailyOfferings = () => {
   const [notes, setNotes] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -107,12 +108,13 @@ const DailyOfferings = () => {
   };
 
   const handleSave = async () => {
-    if (selectedProducts.length === 0) {
+    if (!selectedProducts || selectedProducts.length === 0) {
       alert('Please select at least one product');
       return;
     }
 
     try {
+      setSaving(true);
       const payload = {
         offering_date: selectedDate,
         notes: notes || '',
@@ -134,8 +136,10 @@ const DailyOfferings = () => {
       await fetchStats();
       alert('Offering saved successfully!');
     } catch (err) {
-      console.error(err);
-      alert('Failed to save offering: ' + (err.response?.data?.detail || 'Unknown error'));
+      console.error('Error saving offering:', err);
+      alert('Failed to save offering: ' + (err.response?.data?.detail || err.message || 'Unknown error'));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -248,8 +252,8 @@ const DailyOfferings = () => {
             ) : (
               <div className="products-selection">
                 {products.map(product => {
-                  const isSelected = selectedProducts.some(p => p.product === product.id);
-                  const selectedProduct = selectedProducts.find(p => p.product === product.id);
+                  const isSelected = selectedProducts && selectedProducts.some(p => p.product === product.id);
+                  const selectedProduct = selectedProducts && selectedProducts.find(p => p.product === product.id);
                   
                   return (
                     <div key={product.id} className={`product-selector ${isSelected ? 'selected' : ''}`}>
@@ -293,7 +297,7 @@ const DailyOfferings = () => {
             )}
           </div>
 
-          {selectedProducts.length > 0 && (
+          {selectedProducts && selectedProducts.length > 0 && (
             <div className="form-card summary-card">
               <h3>📋 Selected Items ({selectedProducts.length})</h3>
               <div className="selected-list">
@@ -314,8 +318,12 @@ const DailyOfferings = () => {
           )}
 
           <div className="form-actions">
-            <button onClick={handleSave} className="btn-primary" disabled={selectedProducts.length === 0}>
-              {currentOffering ? '💾 Update Offering' : '➕ Create Offering'}
+            <button 
+              onClick={handleSave} 
+              className="btn-primary" 
+              disabled={!selectedProducts || selectedProducts.length === 0 || saving}
+            >
+              {saving ? 'Saving...' : currentOffering ? '💾 Update Offering' : '➕ Create Offering'}
             </button>
             {currentOffering && (
               <button onClick={handleExportText} className="btn-secondary">
