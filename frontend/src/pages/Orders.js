@@ -11,6 +11,9 @@ const Orders = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPayment, setFilterPayment] = useState('');
   const [stats, setStats] = useState({ total: 0, by_status: {}, by_payment: {} });
+  const [showImport, setShowImport] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
 
   const statuses = [
     { value: '', label: 'All Statuses' },
@@ -91,6 +94,35 @@ const Orders = () => {
     return colors[paymentStatus] || 'gray';
   };
 
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImporting(true);
+    setImportResult(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await api.post('/orders/orders/import_csv/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setImportResult(response.data);
+      fetchOrders();
+      fetchStats();
+    } catch (err) {
+      setImportResult({
+        success: false,
+        error: err.response?.data?.error || 'Import failed'
+      });
+    } finally {
+      setImporting(false);
+      e.target.value = ''; // Reset file input
+    }
+  };
+
   return (
     <div className="orders-page">
       <div className="page-header">
@@ -98,10 +130,69 @@ const Orders = () => {
           <h2>🥘 Orders</h2>
           <p className="page-subtitle">Manage customer orders</p>
         </div>
-        <Link to="/orders/new" className="btn-primary">
-          + Create Order
-        </Link>
+        <div className="header-actions">
+          <button onClick={() => setShowImport(!showImport)} className="btn-secondary">
+            📥 Import CSV
+          </button>
+          <Link to="/orders/new" className="btn-primary">
+            + Create Order
+          </Link>
+        </div>
       </div>
+
+      {showImport && (
+        <div className="import-section">
+          <h3>📊 Import Orders from Google Sheets</h3>
+          <p className="hint">
+            Export your Google Sheet as CSV and upload it here. 
+            <a href="/GOOGLE_SHEETS_IMPORT_TEMPLATE.csv" download className="link"> Download template</a>
+          </p>
+          
+          <div className="file-upload">
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImport}
+              disabled={importing}
+              id="csv-upload"
+              className="file-input"
+            />
+            <label htmlFor="csv-upload" className="file-label">
+              {importing ? 'Importing...' : 'Choose CSV File'}
+            </label>
+          </div>
+
+          {importResult && (
+            <div className={`import-result ${importResult.success ? 'success' : 'error'}`}>
+              {importResult.success ? (
+                <>
+                  <h4>✅ Import Successful</h4>
+                  <p>{importResult.message}</p>
+                  <p><strong>Orders Created:</strong> {importResult.orders_created}</p>
+                  {importResult.errors && importResult.errors.length > 0 && (
+                    <>
+                      <h5>⚠️ Warnings:</h5>
+                      <ul>
+                        {importResult.errors.map((err, idx) => (
+                          <li key={idx}>{err}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h4>❌ Import Failed</h4>
+                  <p>{importResult.error}</p>
+                </>
+              )}
+              <button onClick={() => setImportResult(null)} className="btn-secondary btn-sm">
+                Close
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="stats-cards">
         <div className="stat-card">

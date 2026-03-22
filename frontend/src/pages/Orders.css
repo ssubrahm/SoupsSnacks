@@ -3,6 +3,109 @@
   animation: fadeIn 0.4s ease-in;
 }
 
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.import-section {
+  background: var(--bg-secondary);
+  border: 2px dashed var(--primary-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.import-section h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.import-section .hint {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+}
+
+.import-section .link {
+  color: var(--primary-dark);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.import-section .link:hover {
+  text-decoration: underline;
+}
+
+.file-upload {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-color);
+  color: var(--text-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.file-label:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.import-result {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid;
+}
+
+.import-result.success {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: #4CAF50;
+}
+
+.import-result.error {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: #F44336;
+}
+
+.import-result h4 {
+  margin: 0 0 0.5rem 0;
+}
+
+.import-result h5 {
+  margin: 1rem 0 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.import-result ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.import-result ul li {
+  margin: 0.25rem 0;
+  color: var(--text-secondary);
+}
+
+.import-result .btn-sm {
+  margin-top: 1rem;
+}
+
 .orders-table-container {
   background: var(--bg-secondary);
   border-radius: 12px;

@@ -1,0 +1,8 @@
+customer_name,customer_mobile,order_date,fulfillment_date,product_name,quantity,unit_price,order_type,delivery_address,notes
+Rajesh Kumar,9876543210,2026-03-23,2026-03-24,Cream of Tomato Soup,2,80,delivery,Flat 301 Tower A,Customer requested extra packaging
+Rajesh Kumar,9876543210,2026-03-23,2026-03-24,Masala Bajji,1,60,delivery,Flat 301 Tower A,Customer requested extra packaging
+Priya Sharma,9876543211,2026-03-23,2026-03-23,Upma,3,50,pickup,,Morning pickup preferred
+Priya Sharma,9876543211,2026-03-23,2026-03-23,Mango Pickle,1,120,pickup,,Morning pickup preferred
+Arun Patel,9876543212,2026-03-24,2026-03-25,Cream of Tomato Soup,1,80,delivery,Apartment 15B Prestige Gardens,
+Arun Patel,9876543212,2026-03-24,2026-03-25,Cream of Tomato Soup,1,140,delivery,Apartment 15B Prestige Gardens,
+Arun Patel,9876543212,2026-03-24,2026-03-25,Masala Bajji,2,60,delivery,Apartment 15B Prestige Gardens,
