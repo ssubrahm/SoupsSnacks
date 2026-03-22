@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import './DailyOfferings.css';
 
 const DailyOfferings = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -27,12 +29,21 @@ const DailyOfferings = () => {
 
   const fetchProducts = async () => {
     try {
+      console.log('Fetching products...');
       const response = await api.get('/catalog/products/', { params: { is_active: true } });
-      console.log('Loaded products:', response.data.length, 'products');
-      setProducts(response.data);
+      console.log('Loaded products:', response.data);
+      
+      if (Array.isArray(response.data)) {
+        setProducts(response.data);
+        console.log(`Successfully loaded ${response.data.length} products`);
+      } else {
+        console.error('Products response is not an array:', response.data);
+        setProducts([]);
+      }
     } catch (err) {
       console.error('Failed to load products:', err.response || err);
       setError('Failed to load products: ' + (err.response?.data?.detail || err.message));
+      setProducts([]);
     }
   };
 
@@ -252,8 +263,12 @@ const DailyOfferings = () => {
             
             {products.length === 0 ? (
               <div className="empty-state">
-                <p>No active products in catalog. Add products first.</p>
-                <Link to="/catalog/new" className="btn-primary">+ Add Product</Link>
+                <p>No active products in catalog.</p>
+                {(user?.role === 'admin' || user?.role === 'cook') ? (
+                  <Link to="/catalog/new" className="btn-primary">+ Add Product</Link>
+                ) : (
+                  <p className="hint">Contact admin or cook to add products to the catalog.</p>
+                )}
               </div>
             ) : (
               <div className="products-selection">
