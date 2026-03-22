@@ -42,7 +42,7 @@ const Customers = () => {
       if (filterApartment) params.apartment_name = filterApartment;
       if (filterBlock) params.block = filterBlock;
 
-      const response = await api.get('/customers/', { params });
+      const response = await api.get('/customers/customers/', { params });
       setCustomers(response.data);
       setError('');
     } catch (err) {
@@ -55,7 +55,7 @@ const Customers = () => {
 
   const fetchApartments = async () => {
     try {
-      const response = await api.get('/customers/apartments/');
+      const response = await api.get('/customers/customers/apartments/');
       setApartments(response.data);
     } catch (err) {
       console.error('Failed to load apartments:', err);
@@ -65,7 +65,7 @@ const Customers = () => {
   const fetchBlocks = async () => {
     try {
       const params = filterApartment ? { apartment_name: filterApartment } : {};
-      const response = await api.get('/customers/blocks/', { params });
+      const response = await api.get('/customers/customers/blocks/', { params });
       setBlocks(response.data);
     } catch (err) {
       console.error('Failed to load blocks:', err);
@@ -74,7 +74,7 @@ const Customers = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/customers/stats/');
+      const response = await api.get('/customers/customers/stats/');
       setStats(response.data);
     } catch (err) {
       console.error('Failed to load stats:', err);
@@ -83,7 +83,7 @@ const Customers = () => {
 
   const toggleActive = async (customerId) => {
     try {
-      await api.post(`/customers/${customerId}/toggle_active/`);
+      await api.post(`/customers/customers/${customerId}/toggle_active/`);
       fetchCustomers();
       fetchStats();
     } catch (err) {

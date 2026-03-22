@@ -32,7 +32,7 @@ const CustomerForm = () => {
   const fetchCustomer = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/customers/${id}/`);
+      const response = await api.get(`/customers/customers/${id}/`);
       setFormData(response.data);
     } catch (err) {
       alert('Failed to load customer');
@@ -86,9 +86,9 @@ const CustomerForm = () => {
 
     try {
       if (isEdit) {
-        await api.put(`/customers/${id}/`, formData);
+        await api.put(`/customers/customers/${id}/`, formData);
       } else {
-        await api.post('/customers/', formData);
+        await api.post('/customers/customers/', formData);
       }
       navigate('/customers');
     } catch (err) {

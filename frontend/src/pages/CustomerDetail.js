@@ -17,7 +17,7 @@ const CustomerDetail = () => {
   const fetchCustomer = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/customers/${id}/`);
+      const response = await api.get(`/customers/customers/${id}/`);
       setCustomer(response.data);
       setError('');
     } catch (err) {
@@ -30,7 +30,7 @@ const CustomerDetail = () => {
 
   const toggleActive = async () => {
     try {
-      await api.post(`/customers/${id}/toggle_active/`);
+      await api.post(`/customers/customers/${id}/toggle_active/`);
       fetchCustomer();
     } catch (err) {
       alert('Failed to update customer status');
