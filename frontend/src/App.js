@@ -13,6 +13,7 @@ import Products from './pages/Products';
 import ProductForm from './pages/ProductForm';
 import ProductDetail from './pages/ProductDetail';
 import DailyOfferings from './pages/DailyOfferings';
+import Orders from './pages/Orders';
 import './App.css';
 
 function App() {
@@ -126,10 +127,7 @@ function App() {
             element={
               <ProtectedRoute requiredRole="operator">
                 <Layout>
-                  <div style={{ padding: '2rem' }}>
-                    <h2>🥘 Orders</h2>
-                    <p>Order management - Coming in Step 6</p>
-                  </div>
+                  <Orders />
                 </Layout>
               </ProtectedRoute>
             }

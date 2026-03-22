@@ -1,0 +1,138 @@
+.orders-page {
+  max-width: 1600px;
+  animation: fadeIn 0.4s ease-in;
+}
+
+.orders-table-container {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 0;
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.orders-table thead {
+  background: var(--bg-accent);
+}
+
+.orders-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.orders-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.2s ease;
+}
+
+.orders-table tbody tr:hover {
+  background: var(--bg-accent);
+}
+
+.orders-table td {
+  padding: 1rem;
+  color: var(--text-primary);
+}
+
+.order-link {
+  color: var(--primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.order-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.customer-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.customer-name {
+  font-weight: 500;
+}
+
+.customer-mobile {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.items-badge,
+.qty-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.items-badge {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--primary-dark);
+}
+
+.qty-badge {
+  background: var(--bg-accent);
+  color: var(--text-secondary);
+}
+
+.amount {
+  font-weight: 600;
+  text-align: right;
+}
+
+.amount.profit {
+  color: var(--accent-green);
+}
+
+.status-badge,
+.payment-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.gray { background: rgba(158, 158, 158, 0.15); color: #616161; }
+.status-badge.blue { background: rgba(33, 150, 243, 0.15); color: #1976D2; }
+.status-badge.orange { background: rgba(255, 152, 0, 0.15); color: #E67E22; }
+.status-badge.purple { background: rgba(156, 39, 176, 0.15); color: #7B1FA2; }
+.status-badge.green { background: rgba(76, 175, 80, 0.15); color: #388E3C; }
+.status-badge.teal { background: rgba(0, 150, 136, 0.15); color: #00796B; }
+.status-badge.red { background: rgba(244, 67, 54, 0.15); color: #C62828; }
+.status-badge.yellow { background: rgba(255, 235, 59, 0.15); color: #F57F17; }
+
+.payment-badge.orange { background: rgba(255, 152, 0, 0.15); color: #E67E22; }
+.payment-badge.yellow { background: rgba(255, 235, 59, 0.15); color: #F57F17; }
+.payment-badge.green { background: rgba(76, 175, 80, 0.15); color: #388E3C; }
+.payment-badge.red { background: rgba(244, 67, 54, 0.15); color: #C62828; }
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+@media (max-width: 1024px) {
+  .orders-table-container {
+    overflow-x: scroll;
+  }
+}
