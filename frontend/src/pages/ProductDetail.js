@@ -103,6 +103,12 @@ const ProductDetail = () => {
         </div>
       </div>
 
+      {product.display_image_url && (
+        <div className="detail-card detail-image-card">
+          <img src={product.display_image_url} alt={product.name} className="detail-product-image" />
+        </div>
+      )}
+
       {product.description && (
         <div className="detail-card">
           <p className="product-description">{product.description}</p>

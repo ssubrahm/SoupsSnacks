@@ -3,6 +3,18 @@
   animation: fadeIn 0.4s ease-in;
 }
 
+.detail-image-card {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.detail-product-image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  display: block;
+}
+
 .header-meta {
   display: flex;
   gap: 0.75rem;

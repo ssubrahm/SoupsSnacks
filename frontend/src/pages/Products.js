@@ -177,6 +177,11 @@ const Products = () => {
           ) : (
             products.map((product) => (
               <div key={product.id} className="product-card">
+                {product.display_image_url && (
+                  <div className="product-image">
+                    <img src={product.display_image_url} alt={product.name} />
+                  </div>
+                )}
                 <div className="product-header">
                   <Link to={`/catalog/${product.id}`} className="product-title">
                     {product.name}

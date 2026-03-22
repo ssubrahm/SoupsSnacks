@@ -16,6 +16,7 @@ const ProductForm = () => {
     selling_price: '',
     is_active: true,
     notes: '',
+    image_url: '',
   });
 
   const [costComponents, setCostComponents] = useState([]);
@@ -62,6 +63,7 @@ const ProductForm = () => {
         selling_price: product.selling_price,
         is_active: product.is_active,
         notes: product.notes || '',
+        image_url: product.image_url || '',
       });
       setCostComponents(product.cost_components || []);
     } catch (err) {
@@ -285,6 +287,19 @@ const ProductForm = () => {
                   rows="2"
                   placeholder="Product description (optional)"
                 />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="image_url">Image URL (optional)</label>
+                <input
+                  type="url"
+                  id="image_url"
+                  name="image_url"
+                  value={formData.image_url}
+                  onChange={handleChange}
+                  placeholder="https://example.com/image.jpg"
+                />
+                <small className="hint">Leave empty to use default category image</small>
               </div>
 
               <div className="form-group">
