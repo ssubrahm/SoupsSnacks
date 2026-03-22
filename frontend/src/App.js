@@ -15,6 +15,7 @@ import ProductDetail from './pages/ProductDetail';
 import DailyOfferings from './pages/DailyOfferings';
 import Orders from './pages/Orders';
 import OrderForm from './pages/OrderForm';
+import OrderDetail from './pages/OrderDetail';
 import './App.css';
 
 function App() {
@@ -139,6 +140,16 @@ function App() {
               <ProtectedRoute requiredRole="operator">
                 <Layout>
                   <OrderForm />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:id"
+            element={
+              <ProtectedRoute requiredRole="operator">
+                <Layout>
+                  <OrderDetail />
                 </Layout>
               </ProtectedRoute>
             }
