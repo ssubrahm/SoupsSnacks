@@ -28,9 +28,11 @@ const DailyOfferings = () => {
   const fetchProducts = async () => {
     try {
       const response = await api.get('/catalog/products/', { params: { is_active: true } });
+      console.log('Loaded products:', response.data.length, 'products');
       setProducts(response.data);
     } catch (err) {
-      console.error('Failed to load products:', err);
+      console.error('Failed to load products:', err.response || err);
+      setError('Failed to load products: ' + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -62,7 +64,8 @@ const DailyOfferings = () => {
           setSelectedProducts(offering.items.map(item => ({
             product: item.product,
             available_quantity: item.available_quantity || '',
-            display_order: item.display_order || 0
+            display_order: item.display_order || 0,
+            product_details: item.product_details // Keep full product info
           })));
         } else {
           console.warn('Offering items is not an array:', offering.items);
@@ -305,7 +308,8 @@ const DailyOfferings = () => {
               <h3>📋 Selected Items ({selectedProducts.length})</h3>
               <div className="selected-list">
                 {selectedProducts.map(sp => {
-                  const product = getProductById(sp.product);
+                  // Use product from catalog if available, otherwise use product_details from API
+                  const product = getProductById(sp.product) || sp.product_details;
                   return product ? (
                     <div key={sp.product} className="selected-item">
                       <span className="item-name">{product.name} ({product.unit})</span>
@@ -314,7 +318,12 @@ const DailyOfferings = () => {
                         <span className="item-qty">Max: {sp.available_quantity}</span>
                       )}
                     </div>
-                  ) : null;
+                  ) : (
+                    <div key={sp.product} className="selected-item">
+                      <span className="item-name">Product ID: {sp.product}</span>
+                      <span className="item-price">Loading...</span>
+                    </div>
+                  );
                 })}
               </div>
             </div>
