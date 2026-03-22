@@ -79,6 +79,7 @@ const Layout = ({ children }) => {
             {(user?.role === 'admin' || user?.role === 'operator') && (
               <>
                 <li><Link to="/customers">👥 Customers</Link></li>
+                <li><Link to="/offerings">📅 Offerings</Link></li>
                 <li><Link to="/orders">🥘 Orders</Link></li>
               </>
             )}
