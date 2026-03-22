@@ -55,13 +55,21 @@ const DailyOfferings = () => {
       
       if (response.data.length > 0) {
         const offering = response.data[0];
+        console.log('Loaded offering:', offering);
         setCurrentOffering(offering);
         setNotes(offering.notes || '');
-        setSelectedProducts(offering.items.map(item => ({
-          product: item.product,
-          available_quantity: item.available_quantity || '',
-          display_order: item.display_order
-        })));
+        
+        // Safely map items with fallback
+        if (offering.items && Array.isArray(offering.items)) {
+          setSelectedProducts(offering.items.map(item => ({
+            product: item.product,
+            available_quantity: item.available_quantity || '',
+            display_order: item.display_order || 0
+          })));
+        } else {
+          console.warn('Offering items is not an array:', offering.items);
+          setSelectedProducts([]);
+        }
         setIsEditing(true);
       } else {
         setCurrentOffering(null);

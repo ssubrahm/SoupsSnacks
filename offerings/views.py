@@ -20,6 +20,9 @@ class DailyOfferingViewSet(viewsets.ModelViewSet):
     
     def get_serializer_class(self):
         if self.action == 'list':
+            # If filtering by specific date, return full serializer with items
+            if self.request.query_params.get('date'):
+                return DailyOfferingSerializer
             return DailyOfferingListSerializer
         elif self.action in ['create', 'update', 'partial_update']:
             return DailyOfferingCreateUpdateSerializer
