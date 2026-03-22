@@ -40,13 +40,16 @@ const DailyOfferings = () => {
       const response = await api.get('/offerings/daily-offerings/stats/');
       setStats(response.data);
     } catch (err) {
-      console.error('Failed to load stats:', err);
+      console.error('Failed to load stats:', err.response || err);
+      // Don't show error to user for stats, just use defaults
+      setStats({ total: 0, active: 0, inactive: 0 });
     }
   };
 
   const fetchOfferingForDate = async (date) => {
     try {
       setLoading(true);
+      setError('');
       const response = await api.get('/offerings/daily-offerings/', { params: { date } });
       
       if (response.data.length > 0) {
@@ -65,10 +68,18 @@ const DailyOfferings = () => {
         setSelectedProducts([]);
         setIsEditing(false);
       }
-      setError('');
     } catch (err) {
-      setError('Failed to load offering');
-      console.error(err);
+      console.error('Error fetching offering:', err.response || err);
+      if (err.response?.status === 404) {
+        // No offering for this date, which is fine
+        setCurrentOffering(null);
+        setNotes('');
+        setSelectedProducts([]);
+        setIsEditing(false);
+        setError('');
+      } else {
+        setError('Failed to load offering: ' + (err.response?.data?.detail || err.message));
+      }
     } finally {
       setLoading(false);
     }
@@ -204,7 +215,13 @@ const DailyOfferings = () => {
       </div>
 
       {loading && <div className="loading">Loading offering...</div>}
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message">
+          <strong>Error:</strong> {error}
+          <br />
+          <small>Check browser console for details</small>
+        </div>
+      )}
 
       {!loading && (
         <div className="offering-form">
