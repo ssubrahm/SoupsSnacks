@@ -4,7 +4,6 @@ import api from '../services/api';
 import './DailyOfferings.css';
 
 const DailyOfferings = () => {
-  const [offerings, setOfferings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -12,7 +11,6 @@ const DailyOfferings = () => {
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [notes, setNotes] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
   const [saving, setSaving] = useState(false);
 
@@ -70,12 +68,10 @@ const DailyOfferings = () => {
           console.warn('Offering items is not an array:', offering.items);
           setSelectedProducts([]);
         }
-        setIsEditing(true);
       } else {
         setCurrentOffering(null);
         setNotes('');
         setSelectedProducts([]);
-        setIsEditing(false);
       }
     } catch (err) {
       console.error('Error fetching offering:', err.response || err);
@@ -84,7 +80,6 @@ const DailyOfferings = () => {
         setCurrentOffering(null);
         setNotes('');
         setSelectedProducts([]);
-        setIsEditing(false);
         setError('');
       } else {
         setError('Failed to load offering: ' + (err.response?.data?.detail || err.message));
