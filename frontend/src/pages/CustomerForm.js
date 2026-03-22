@@ -27,6 +27,7 @@ const CustomerForm = () => {
     if (isEdit) {
       fetchCustomer();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchCustomer = async () => {
