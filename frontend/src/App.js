@@ -12,6 +12,7 @@ import CustomerDetail from './pages/CustomerDetail';
 import Products from './pages/Products';
 import ProductForm from './pages/ProductForm';
 import ProductDetail from './pages/ProductDetail';
+import DailyOfferings from './pages/DailyOfferings';
 import './App.css';
 
 function App() {
@@ -106,6 +107,16 @@ function App() {
               <ProtectedRoute requiredRole="cook">
                 <Layout>
                   <ProductForm />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/offerings"
+            element={
+              <ProtectedRoute requiredRole="operator">
+                <Layout>
+                  <DailyOfferings />
                 </Layout>
               </ProtectedRoute>
             }
