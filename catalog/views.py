@@ -1,8 +1,9 @@
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Count
-from accounts.permissions import IsAdmin, IsCook
+from accounts.permissions import IsAdmin, IsCook, IsOperator
 from .models import Product, ProductCostComponent
 from .serializers import (
     ProductSerializer, ProductListSerializer, 
@@ -12,14 +13,23 @@ from .serializers import (
 
 class ProductViewSet(viewsets.ModelViewSet):
     """
-    Product management - Accessible by Admin and Cook
+    Product management - Read: All authenticated users, Write: Admin and Cook only
     """
     queryset = Product.objects.all()
-    permission_classes = [IsCook]  # Admin and Cook can access
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description', 'category']
     ordering_fields = ['name', 'category', 'selling_price', 'created_at']
     ordering = ['category', 'name']
+    
+    def get_permissions(self):
+        """
+        Allow all authenticated users to read products (list, retrieve)
+        Only Cook and Admin can create, update, delete
+        """
+        if self.action in ['list', 'retrieve', 'stats']:
+            return [IsAuthenticated()]
+        return [IsCook()]
     
     def get_serializer_class(self):
         if self.action == 'list':
