@@ -26,16 +26,18 @@ class ProductSerializer(serializers.ModelSerializer):
     unit_profit = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     margin_percent = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
     status = serializers.ReadOnlyField()
+    display_image_url = serializers.ReadOnlyField()
     
     class Meta:
         model = Product
         fields = [
             'id', 'name', 'category', 'description', 'unit', 'selling_price',
-            'is_active', 'status', 'notes', 'created_at', 'updated_at',
-            'cost_components', 'unit_cost', 'unit_profit', 'margin_percent'
+            'is_active', 'status', 'notes', 'image_url', 'display_image_url',
+            'created_at', 'updated_at', 'cost_components', 'unit_cost', 
+            'unit_profit', 'margin_percent'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'status', 
-                           'unit_cost', 'unit_profit', 'margin_percent']
+                           'unit_cost', 'unit_profit', 'margin_percent', 'display_image_url']
     
     def validate_selling_price(self, value):
         if value <= 0:
@@ -49,6 +51,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     unit_profit = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     margin_percent = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
     status = serializers.ReadOnlyField()
+    display_image_url = serializers.ReadOnlyField()
     component_count = serializers.SerializerMethodField()
     
     class Meta:
@@ -56,10 +59,10 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'category', 'unit', 'selling_price',
             'is_active', 'status', 'unit_cost', 'unit_profit', 
-            'margin_percent', 'component_count', 'created_at'
+            'margin_percent', 'component_count', 'display_image_url', 'created_at'
         ]
         read_only_fields = ['id', 'created_at', 'status', 
-                           'unit_cost', 'unit_profit', 'margin_percent']
+                           'unit_cost', 'unit_profit', 'margin_percent', 'display_image_url']
     
     def get_component_count(self, obj):
         return obj.cost_components.count()
@@ -73,7 +76,7 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'name', 'category', 'description', 'unit', 'selling_price',
-            'is_active', 'notes', 'cost_components'
+            'is_active', 'notes', 'image_url', 'cost_components'
         ]
         read_only_fields = ['id']
     
