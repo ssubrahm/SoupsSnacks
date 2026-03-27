@@ -2,8 +2,8 @@ import csv
 from decimal import Decimal
 from datetime import date, timedelta
 from django.http import HttpResponse
-from django.db.models import Sum, Count, Avg, F, Q, Max
-from django.db.models.functions import TruncDate, TruncMonth
+from django.db.models import Sum, Count, Avg, F, Q, Max, Value
+from django.db.models.functions import TruncDate, TruncMonth, Coalesce
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -24,12 +24,13 @@ def safe_float(value):
 
 def get_order_totals(orders):
     """Calculate revenue and profit for a queryset of orders by aggregating items"""
+    from decimal import Decimal
     # Get all order items for these orders
     order_ids = list(orders.values_list('id', flat=True))
     
     totals = OrderItem.objects.filter(order_id__in=order_ids).aggregate(
         total_revenue=Sum(F('quantity') * F('unit_price')),
-        total_cost=Sum(F('quantity') * F('unit_cost_snapshot'))
+        total_cost=Sum(F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))))
     )
     
     revenue = safe_float(totals['total_revenue'])
@@ -185,7 +186,7 @@ class SalesReportView(APIView):
                 ).values('period').annotate(
                     orders=Count('order', distinct=True),
                     revenue=Sum(F('quantity') * F('unit_price')),
-                    profit=Sum(F('quantity') * (F('unit_price') - F('unit_cost_snapshot')))
+                    profit=Sum(F('quantity') * (F('unit_price') - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))))
                 ).order_by('period')
             else:
                 daily_data = items.annotate(
@@ -193,7 +194,7 @@ class SalesReportView(APIView):
                 ).values('period').annotate(
                     orders=Count('order', distinct=True),
                     revenue=Sum(F('quantity') * F('unit_price')),
-                    profit=Sum(F('quantity') * (F('unit_price') - F('unit_cost_snapshot')))
+                    profit=Sum(F('quantity') * (F('unit_price') - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))))
                 ).order_by('period')
             
             data = []
@@ -252,7 +253,7 @@ class CustomerReportView(APIView):
             ).annotate(
                 order_count=Count('order', distinct=True),
                 total_spent=Sum(F('quantity') * F('unit_price')),
-                total_profit=Sum(F('quantity') * (F('unit_price') - F('unit_cost_snapshot'))),
+                total_profit=Sum(F('quantity') * (F('unit_price') - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))))),
                 last_order=Max('order__order_date')
             )
             
@@ -341,7 +342,7 @@ class ProductReportView(APIView):
             ).annotate(
                 total_qty=Sum('quantity'),
                 total_revenue=Sum(F('quantity') * F('unit_price')),
-                total_cost=Sum(F('quantity') * F('unit_cost_snapshot')),
+                total_cost=Sum(F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
                 order_count=Count('order', distinct=True)
             )
             
@@ -665,7 +666,7 @@ class ExportCustomerCSV(APIView):
         ).annotate(
             order_count=Count('order', distinct=True),
             total_spent=Sum(F('quantity') * F('unit_price')),
-            total_profit=Sum(F('quantity') * (F('unit_price') - F('unit_cost_snapshot')))
+            total_profit=Sum(F('quantity') * (F('unit_price') - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))))
         ).order_by('-total_spent')
         
         response = HttpResponse(content_type='text/csv')
@@ -720,7 +721,7 @@ class ExportProductCSV(APIView):
         ).annotate(
             total_qty=Sum('quantity'),
             total_revenue=Sum(F('quantity') * F('unit_price')),
-            total_cost=Sum(F('quantity') * F('unit_cost_snapshot'))
+            total_cost=Sum(F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))))
         ).order_by('-total_revenue')
         
         response = HttpResponse(content_type='text/csv')
