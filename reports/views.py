@@ -857,3 +857,648 @@ class ExportUnpaidCSV(APIView):
             ])
         
         return response
+
+
+# ============================================================
+# CUSTOMER LOYALTY ANALYTICS (Step 9)
+# ============================================================
+
+def calculate_customer_metrics(customer, orders):
+    """
+    Calculate loyalty metrics for a single customer.
+    
+    Returns dict with:
+    - total_orders, total_revenue, avg_order_value
+    - first_order_date, last_order_date
+    - repeat_customer_flag, order_frequency
+    - avg_days_between_orders, recency_days
+    - loyalty_segment, recency_status
+    """
+    today = date.today()
+    
+    if not orders:
+        return {
+            'customer_id': customer.id,
+            'customer_name': customer.name,
+            'mobile': customer.mobile,
+            'apartment': customer.apartment_name,
+            'block': customer.block,
+            'total_orders': 0,
+            'total_revenue': 0.0,
+            'total_profit': 0.0,
+            'avg_order_value': 0.0,
+            'first_order_date': None,
+            'last_order_date': None,
+            'repeat_customer_flag': False,
+            'order_frequency': 'never',
+            'avg_days_between_orders': None,
+            'recency_days': None,
+            'loyalty_segment': 'prospect',
+            'recency_status': 'never_ordered',
+        }
+    
+    # Sort orders by date
+    sorted_orders = sorted(orders, key=lambda o: o.order_date)
+    
+    # Calculate revenue and profit
+    total_revenue = Decimal('0')
+    total_profit = Decimal('0')
+    for order in orders:
+        for item in order.items.all():
+            price = item.unit_price or Decimal('0')
+            cost = item.unit_cost_snapshot or Decimal('0')
+            qty = item.quantity or 0
+            total_revenue += qty * price
+            total_profit += qty * (price - cost)
+    
+    total_orders = len(orders)
+    first_order_date = sorted_orders[0].order_date
+    last_order_date = sorted_orders[-1].order_date
+    avg_order_value = float(total_revenue) / total_orders if total_orders > 0 else 0
+    
+    # Recency
+    recency_days = (today - last_order_date).days
+    
+    # Average days between orders
+    avg_days_between = None
+    if total_orders > 1:
+        total_days = (last_order_date - first_order_date).days
+        avg_days_between = total_days / (total_orders - 1) if total_orders > 1 else None
+    
+    # Repeat customer flag
+    repeat_customer_flag = total_orders >= 2
+    
+    # Loyalty segment: new (1 order), repeat (2-4), loyal (5+)
+    if total_orders == 1:
+        loyalty_segment = 'new'
+    elif total_orders <= 4:
+        loyalty_segment = 'repeat'
+    else:
+        loyalty_segment = 'loyal'
+    
+    # Recency status: active (<30 days), at-risk (31-90), inactive (>90)
+    if recency_days <= 30:
+        recency_status = 'active'
+    elif recency_days <= 90:
+        recency_status = 'at_risk'
+    else:
+        recency_status = 'inactive'
+    
+    # Order frequency description
+    if avg_days_between is None:
+        order_frequency = 'single_order'
+    elif avg_days_between <= 7:
+        order_frequency = 'weekly'
+    elif avg_days_between <= 14:
+        order_frequency = 'biweekly'
+    elif avg_days_between <= 30:
+        order_frequency = 'monthly'
+    elif avg_days_between <= 60:
+        order_frequency = 'occasional'
+    else:
+        order_frequency = 'rare'
+    
+    return {
+        'customer_id': customer.id,
+        'customer_name': customer.name,
+        'mobile': customer.mobile,
+        'apartment': customer.apartment_name,
+        'block': customer.block,
+        'total_orders': total_orders,
+        'total_revenue': float(total_revenue),
+        'total_profit': float(total_profit),
+        'avg_order_value': round(avg_order_value, 2),
+        'first_order_date': first_order_date.isoformat(),
+        'last_order_date': last_order_date.isoformat(),
+        'repeat_customer_flag': repeat_customer_flag,
+        'order_frequency': order_frequency,
+        'avg_days_between_orders': round(avg_days_between, 1) if avg_days_between else None,
+        'recency_days': recency_days,
+        'loyalty_segment': loyalty_segment,
+        'recency_status': recency_status,
+    }
+
+
+class CustomerLoyaltyDashboardView(APIView):
+    """Customer Loyalty Analytics Dashboard with summary metrics"""
+    permission_classes = [IsAuthenticated, IsOperator]
+    
+    def get(self, request):
+        try:
+            # Get all customers with their orders
+            customers = Customer.objects.filter(is_active=True)
+            orders = Order.objects.exclude(status='cancelled').select_related('customer').prefetch_related('items')
+            
+            # Group orders by customer
+            customer_orders = {}
+            for order in orders:
+                cid = order.customer_id
+                if cid not in customer_orders:
+                    customer_orders[cid] = []
+                customer_orders[cid].append(order)
+            
+            # Calculate metrics for all customers
+            all_metrics = []
+            for customer in customers:
+                cust_orders = customer_orders.get(customer.id, [])
+                metrics = calculate_customer_metrics(customer, cust_orders)
+                all_metrics.append(metrics)
+            
+            # Summary stats
+            total_customers = len(all_metrics)
+            customers_with_orders = len([m for m in all_metrics if m['total_orders'] > 0])
+            
+            # Loyalty segment counts
+            segment_counts = {
+                'prospect': 0,
+                'new': 0,
+                'repeat': 0,
+                'loyal': 0
+            }
+            for m in all_metrics:
+                segment_counts[m['loyalty_segment']] += 1
+            
+            # Recency status counts (only for customers with orders)
+            recency_counts = {
+                'active': 0,
+                'at_risk': 0,
+                'inactive': 0,
+                'never_ordered': 0
+            }
+            for m in all_metrics:
+                recency_counts[m['recency_status']] += 1
+            
+            # Top metrics
+            customers_with_metrics = [m for m in all_metrics if m['total_orders'] > 0]
+            
+            if customers_with_metrics:
+                total_revenue = sum(m['total_revenue'] for m in customers_with_metrics)
+                avg_ltv = total_revenue / len(customers_with_metrics) if customers_with_metrics else 0
+                repeat_rate = len([m for m in customers_with_metrics if m['repeat_customer_flag']]) / len(customers_with_metrics) * 100
+                avg_orders = sum(m['total_orders'] for m in customers_with_metrics) / len(customers_with_metrics)
+            else:
+                total_revenue = 0
+                avg_ltv = 0
+                repeat_rate = 0
+                avg_orders = 0
+            
+            # Top 10 by revenue (LTV)
+            top_by_revenue = sorted(customers_with_metrics, key=lambda x: x['total_revenue'], reverse=True)[:10]
+            
+            # Top 10 by order count
+            top_by_orders = sorted(customers_with_metrics, key=lambda x: x['total_orders'], reverse=True)[:10]
+            
+            # At-risk customers (need attention)
+            at_risk_customers = [m for m in all_metrics if m['recency_status'] == 'at_risk']
+            at_risk_customers.sort(key=lambda x: x['total_revenue'], reverse=True)
+            
+            return Response({
+                'summary': {
+                    'total_customers': total_customers,
+                    'customers_with_orders': customers_with_orders,
+                    'total_revenue': round(total_revenue, 2),
+                    'avg_lifetime_value': round(avg_ltv, 2),
+                    'repeat_rate_percent': round(repeat_rate, 1),
+                    'avg_orders_per_customer': round(avg_orders, 1),
+                },
+                'segment_counts': segment_counts,
+                'recency_counts': recency_counts,
+                'top_by_revenue': top_by_revenue[:10],
+                'top_by_orders': top_by_orders[:10],
+                'at_risk_customers': at_risk_customers[:10],
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CustomerLoyaltyListView(APIView):
+    """Full customer loyalty list with all metrics"""
+    permission_classes = [IsAuthenticated, IsOperator]
+    
+    def get(self, request):
+        try:
+            # Filters
+            loyalty_segment = request.query_params.get('loyalty_segment')
+            recency_status = request.query_params.get('recency_status')
+            sort_by = request.query_params.get('sort_by', 'total_revenue')
+            
+            # Get all customers with their orders
+            customers = Customer.objects.filter(is_active=True)
+            orders = Order.objects.exclude(status='cancelled').select_related('customer').prefetch_related('items')
+            
+            # Group orders by customer
+            customer_orders = {}
+            for order in orders:
+                cid = order.customer_id
+                if cid not in customer_orders:
+                    customer_orders[cid] = []
+                customer_orders[cid].append(order)
+            
+            # Calculate metrics for all customers
+            all_metrics = []
+            for customer in customers:
+                cust_orders = customer_orders.get(customer.id, [])
+                metrics = calculate_customer_metrics(customer, cust_orders)
+                all_metrics.append(metrics)
+            
+            # Filter
+            if loyalty_segment:
+                all_metrics = [m for m in all_metrics if m['loyalty_segment'] == loyalty_segment]
+            if recency_status:
+                all_metrics = [m for m in all_metrics if m['recency_status'] == recency_status]
+            
+            # Sort
+            if sort_by == 'total_orders':
+                all_metrics.sort(key=lambda x: x['total_orders'], reverse=True)
+            elif sort_by == 'avg_order_value':
+                all_metrics.sort(key=lambda x: x['avg_order_value'], reverse=True)
+            elif sort_by == 'recency_days':
+                all_metrics.sort(key=lambda x: x['recency_days'] if x['recency_days'] is not None else 9999)
+            elif sort_by == 'last_order_date':
+                all_metrics.sort(key=lambda x: x['last_order_date'] or '0000-00-00', reverse=True)
+            else:  # total_revenue (default)
+                all_metrics.sort(key=lambda x: x['total_revenue'], reverse=True)
+            
+            return Response({
+                'count': len(all_metrics),
+                'data': all_metrics
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RepeatCustomersReportView(APIView):
+    """Report on repeat vs one-time customers"""
+    permission_classes = [IsAuthenticated, IsOperator]
+    
+    def get(self, request):
+        try:
+            customers = Customer.objects.filter(is_active=True)
+            orders = Order.objects.exclude(status='cancelled').select_related('customer').prefetch_related('items')
+            
+            customer_orders = {}
+            for order in orders:
+                cid = order.customer_id
+                if cid not in customer_orders:
+                    customer_orders[cid] = []
+                customer_orders[cid].append(order)
+            
+            # Calculate metrics
+            one_time = []
+            repeat = []
+            
+            for customer in customers:
+                cust_orders = customer_orders.get(customer.id, [])
+                if not cust_orders:
+                    continue
+                    
+                metrics = calculate_customer_metrics(customer, cust_orders)
+                if metrics['total_orders'] == 1:
+                    one_time.append(metrics)
+                else:
+                    repeat.append(metrics)
+            
+            # Summary
+            total_with_orders = len(one_time) + len(repeat)
+            one_time_revenue = sum(m['total_revenue'] for m in one_time)
+            repeat_revenue = sum(m['total_revenue'] for m in repeat)
+            
+            return Response({
+                'summary': {
+                    'total_customers': total_with_orders,
+                    'one_time_count': len(one_time),
+                    'repeat_count': len(repeat),
+                    'repeat_rate_percent': round(len(repeat) / total_with_orders * 100, 1) if total_with_orders else 0,
+                    'one_time_revenue': round(one_time_revenue, 2),
+                    'repeat_revenue': round(repeat_revenue, 2),
+                    'repeat_revenue_percent': round(repeat_revenue / (one_time_revenue + repeat_revenue) * 100, 1) if (one_time_revenue + repeat_revenue) else 0,
+                },
+                'one_time_customers': sorted(one_time, key=lambda x: x['total_revenue'], reverse=True)[:20],
+                'repeat_customers': sorted(repeat, key=lambda x: x['total_orders'], reverse=True)[:20],
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FrequencyReportView(APIView):
+    """Customer purchase frequency report"""
+    permission_classes = [IsAuthenticated, IsOperator]
+    
+    def get(self, request):
+        try:
+            customers = Customer.objects.filter(is_active=True)
+            orders = Order.objects.exclude(status='cancelled').select_related('customer').prefetch_related('items')
+            
+            customer_orders = {}
+            for order in orders:
+                cid = order.customer_id
+                if cid not in customer_orders:
+                    customer_orders[cid] = []
+                customer_orders[cid].append(order)
+            
+            # Group by frequency
+            frequency_groups = {
+                'weekly': [],
+                'biweekly': [],
+                'monthly': [],
+                'occasional': [],
+                'rare': [],
+                'single_order': []
+            }
+            
+            for customer in customers:
+                cust_orders = customer_orders.get(customer.id, [])
+                if not cust_orders:
+                    continue
+                    
+                metrics = calculate_customer_metrics(customer, cust_orders)
+                freq = metrics['order_frequency']
+                if freq in frequency_groups:
+                    frequency_groups[freq].append(metrics)
+            
+            # Summary for each frequency
+            frequency_summary = {}
+            for freq, customers_list in frequency_groups.items():
+                if customers_list:
+                    frequency_summary[freq] = {
+                        'count': len(customers_list),
+                        'total_revenue': round(sum(m['total_revenue'] for m in customers_list), 2),
+                        'avg_revenue': round(sum(m['total_revenue'] for m in customers_list) / len(customers_list), 2),
+                        'avg_orders': round(sum(m['total_orders'] for m in customers_list) / len(customers_list), 1),
+                    }
+                else:
+                    frequency_summary[freq] = {
+                        'count': 0,
+                        'total_revenue': 0,
+                        'avg_revenue': 0,
+                        'avg_orders': 0,
+                    }
+            
+            return Response({
+                'frequency_summary': frequency_summary,
+                'weekly_customers': sorted(frequency_groups['weekly'], key=lambda x: x['total_revenue'], reverse=True)[:10],
+                'biweekly_customers': sorted(frequency_groups['biweekly'], key=lambda x: x['total_revenue'], reverse=True)[:10],
+                'monthly_customers': sorted(frequency_groups['monthly'], key=lambda x: x['total_revenue'], reverse=True)[:10],
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RecencyReportView(APIView):
+    """Customer recency analysis report"""
+    permission_classes = [IsAuthenticated, IsOperator]
+    
+    def get(self, request):
+        try:
+            customers = Customer.objects.filter(is_active=True)
+            orders = Order.objects.exclude(status='cancelled').select_related('customer').prefetch_related('items')
+            
+            customer_orders = {}
+            for order in orders:
+                cid = order.customer_id
+                if cid not in customer_orders:
+                    customer_orders[cid] = []
+                customer_orders[cid].append(order)
+            
+            # Group by recency
+            recency_groups = {
+                'active': [],
+                'at_risk': [],
+                'inactive': []
+            }
+            
+            for customer in customers:
+                cust_orders = customer_orders.get(customer.id, [])
+                if not cust_orders:
+                    continue
+                    
+                metrics = calculate_customer_metrics(customer, cust_orders)
+                status = metrics['recency_status']
+                if status in recency_groups:
+                    recency_groups[status].append(metrics)
+            
+            # Summary
+            recency_summary = {}
+            for status, customers_list in recency_groups.items():
+                if customers_list:
+                    recency_summary[status] = {
+                        'count': len(customers_list),
+                        'total_revenue': round(sum(m['total_revenue'] for m in customers_list), 2),
+                        'avg_revenue': round(sum(m['total_revenue'] for m in customers_list) / len(customers_list), 2),
+                        'avg_recency_days': round(sum(m['recency_days'] for m in customers_list) / len(customers_list), 1),
+                    }
+                else:
+                    recency_summary[status] = {
+                        'count': 0,
+                        'total_revenue': 0,
+                        'avg_revenue': 0,
+                        'avg_recency_days': 0,
+                    }
+            
+            # Engagement insights
+            insights = []
+            
+            # At-risk high-value customers
+            at_risk_high_value = [m for m in recency_groups['at_risk'] if m['total_revenue'] > 1000]
+            if at_risk_high_value:
+                insights.append({
+                    'type': 'at_risk_high_value',
+                    'title': 'High-Value Customers at Risk',
+                    'message': f"{len(at_risk_high_value)} customers with >₹1000 spend haven't ordered in 31-90 days. Consider reaching out!",
+                    'customers': sorted(at_risk_high_value, key=lambda x: x['total_revenue'], reverse=True)[:5]
+                })
+            
+            # Inactive loyal customers
+            inactive_loyal = [m for m in recency_groups['inactive'] if m['loyalty_segment'] == 'loyal']
+            if inactive_loyal:
+                insights.append({
+                    'type': 'inactive_loyal',
+                    'title': 'Loyal Customers Gone Inactive',
+                    'message': f"{len(inactive_loyal)} loyal customers (5+ orders) haven't ordered in >90 days. Win them back!",
+                    'customers': sorted(inactive_loyal, key=lambda x: x['total_revenue'], reverse=True)[:5]
+                })
+            
+            return Response({
+                'recency_summary': recency_summary,
+                'insights': insights,
+                'active_customers': sorted(recency_groups['active'], key=lambda x: x['total_revenue'], reverse=True)[:15],
+                'at_risk_customers': sorted(recency_groups['at_risk'], key=lambda x: x['total_revenue'], reverse=True)[:15],
+                'inactive_customers': sorted(recency_groups['inactive'], key=lambda x: x['total_revenue'], reverse=True)[:15],
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class LifetimeValueReportView(APIView):
+    """Customer Lifetime Value (LTV) report"""
+    permission_classes = [IsAuthenticated, IsOperator]
+    
+    def get(self, request):
+        try:
+            customers = Customer.objects.filter(is_active=True)
+            orders = Order.objects.exclude(status='cancelled').select_related('customer').prefetch_related('items')
+            
+            customer_orders = {}
+            for order in orders:
+                cid = order.customer_id
+                if cid not in customer_orders:
+                    customer_orders[cid] = []
+                customer_orders[cid].append(order)
+            
+            all_metrics = []
+            for customer in customers:
+                cust_orders = customer_orders.get(customer.id, [])
+                if cust_orders:
+                    metrics = calculate_customer_metrics(customer, cust_orders)
+                    all_metrics.append(metrics)
+            
+            if not all_metrics:
+                return Response({
+                    'summary': {},
+                    'ltv_distribution': {},
+                    'top_customers': [],
+                    'bottom_customers': []
+                })
+            
+            # LTV distribution buckets
+            ltv_buckets = {
+                '0-500': [],
+                '501-1000': [],
+                '1001-2500': [],
+                '2501-5000': [],
+                '5001+': []
+            }
+            
+            for m in all_metrics:
+                ltv = m['total_revenue']
+                if ltv <= 500:
+                    ltv_buckets['0-500'].append(m)
+                elif ltv <= 1000:
+                    ltv_buckets['501-1000'].append(m)
+                elif ltv <= 2500:
+                    ltv_buckets['1001-2500'].append(m)
+                elif ltv <= 5000:
+                    ltv_buckets['2501-5000'].append(m)
+                else:
+                    ltv_buckets['5001+'].append(m)
+            
+            ltv_distribution = {}
+            for bucket, customers_list in ltv_buckets.items():
+                ltv_distribution[bucket] = {
+                    'count': len(customers_list),
+                    'total_revenue': round(sum(m['total_revenue'] for m in customers_list), 2),
+                }
+            
+            # Summary
+            total_ltv = sum(m['total_revenue'] for m in all_metrics)
+            avg_ltv = total_ltv / len(all_metrics)
+            
+            sorted_by_ltv = sorted(all_metrics, key=lambda x: x['total_revenue'], reverse=True)
+            
+            # Top 20% contribute what % of revenue
+            top_20_count = max(1, len(all_metrics) // 5)
+            top_20_revenue = sum(m['total_revenue'] for m in sorted_by_ltv[:top_20_count])
+            top_20_percent = (top_20_revenue / total_ltv * 100) if total_ltv else 0
+            
+            return Response({
+                'summary': {
+                    'total_customers': len(all_metrics),
+                    'total_ltv': round(total_ltv, 2),
+                    'avg_ltv': round(avg_ltv, 2),
+                    'median_ltv': round(sorted_by_ltv[len(sorted_by_ltv) // 2]['total_revenue'], 2),
+                    'max_ltv': round(sorted_by_ltv[0]['total_revenue'], 2),
+                    'top_20_revenue_percent': round(top_20_percent, 1),
+                },
+                'ltv_distribution': ltv_distribution,
+                'top_customers': sorted_by_ltv[:20],
+                'bottom_customers': sorted_by_ltv[-10:] if len(sorted_by_ltv) > 10 else sorted_by_ltv,
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CohortRetentionReportView(APIView):
+    """Simple cohort retention by first order month"""
+    permission_classes = [IsAuthenticated, IsOperator]
+    
+    def get(self, request):
+        try:
+            orders = Order.objects.exclude(status='cancelled').select_related('customer').order_by('order_date')
+            
+            # Find first order date for each customer
+            customer_first_order = {}
+            customer_orders_by_month = {}
+            
+            for order in orders:
+                cid = order.customer_id
+                order_month = order.order_date.replace(day=1)
+                
+                if cid not in customer_first_order:
+                    customer_first_order[cid] = order_month
+                    customer_orders_by_month[cid] = set()
+                
+                customer_orders_by_month[cid].add(order_month)
+            
+            # Group customers by cohort (first order month)
+            cohorts = {}
+            for cid, first_month in customer_first_order.items():
+                cohort_key = first_month.isoformat()[:7]  # YYYY-MM
+                if cohort_key not in cohorts:
+                    cohorts[cohort_key] = {
+                        'customers': [],
+                        'months_active': {}
+                    }
+                cohorts[cohort_key]['customers'].append(cid)
+            
+            # Calculate retention for each cohort
+            cohort_data = []
+            today = date.today()
+            
+            for cohort_key in sorted(cohorts.keys(), reverse=True)[:6]:  # Last 6 cohorts
+                cohort = cohorts[cohort_key]
+                cohort_size = len(cohort['customers'])
+                
+                retention = {'cohort': cohort_key, 'size': cohort_size, 'months': {}}
+                
+                # Calculate retention for months 0, 1, 2, 3
+                cohort_month = date.fromisoformat(cohort_key + '-01')
+                
+                for month_offset in range(4):
+                    target_month = (cohort_month.replace(day=1) + timedelta(days=32 * month_offset)).replace(day=1)
+                    
+                    if target_month > today:
+                        break
+                    
+                    active_count = 0
+                    for cid in cohort['customers']:
+                        if target_month in customer_orders_by_month.get(cid, set()):
+                            active_count += 1
+                    
+                    retention_rate = (active_count / cohort_size * 100) if cohort_size else 0
+                    retention['months'][f'M{month_offset}'] = {
+                        'active': active_count,
+                        'retention_percent': round(retention_rate, 1)
+                    }
+                
+                cohort_data.append(retention)
+            
+            return Response({
+                'cohorts': cohort_data,
+                'total_cohorts': len(cohorts),
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

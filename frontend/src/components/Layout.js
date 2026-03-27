@@ -92,11 +92,15 @@ const Layout = ({ children }) => {
               <li><Link to="/payments">💰 Payments</Link></li>
             )}
             
-            {user?.role === 'admin' && (
+            {(user?.role === 'admin' || user?.role === 'operator') && (
               <>
                 <li><Link to="/reports">📈 Reports</Link></li>
-                <li><Link to="/users">👤 Users</Link></li>
+                <li><Link to="/analytics">🎯 Analytics</Link></li>
               </>
+            )}
+            
+            {user?.role === 'admin' && (
+              <li><Link to="/users">👤 Users</Link></li>
             )}
           </ul>
         </nav>

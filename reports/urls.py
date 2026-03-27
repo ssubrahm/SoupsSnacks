@@ -11,6 +11,14 @@ from .views import (
     ExportCustomerCSV,
     ExportProductCSV,
     ExportUnpaidCSV,
+    # Customer Loyalty Analytics
+    CustomerLoyaltyDashboardView,
+    CustomerLoyaltyListView,
+    RepeatCustomersReportView,
+    FrequencyReportView,
+    RecencyReportView,
+    LifetimeValueReportView,
+    CohortRetentionReportView,
 )
 
 urlpatterns = [
@@ -26,4 +34,12 @@ urlpatterns = [
     path('export/customers/', ExportCustomerCSV.as_view(), name='export-customers'),
     path('export/products/', ExportProductCSV.as_view(), name='export-products'),
     path('export/unpaid/', ExportUnpaidCSV.as_view(), name='export-unpaid'),
+    # Customer Loyalty Analytics
+    path('loyalty/dashboard/', CustomerLoyaltyDashboardView.as_view(), name='loyalty-dashboard'),
+    path('loyalty/customers/', CustomerLoyaltyListView.as_view(), name='loyalty-customers'),
+    path('loyalty/repeat/', RepeatCustomersReportView.as_view(), name='loyalty-repeat'),
+    path('loyalty/frequency/', FrequencyReportView.as_view(), name='loyalty-frequency'),
+    path('loyalty/recency/', RecencyReportView.as_view(), name='loyalty-recency'),
+    path('loyalty/ltv/', LifetimeValueReportView.as_view(), name='loyalty-ltv'),
+    path('loyalty/cohorts/', CohortRetentionReportView.as_view(), name='loyalty-cohorts'),
 ]
