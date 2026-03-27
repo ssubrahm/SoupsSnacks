@@ -57,7 +57,31 @@ const PaymentSection = ({ orderId, orderTotal, onPaymentAdded }) => {
       await fetchPayments();
       if (onPaymentAdded) onPaymentAdded();
     } catch (err) {
-      setError(err.response?.data?.amount?.[0] || 'Failed to add payment');
+      console.error('Payment error:', err.response?.data);
+      // Extract error message from various possible formats
+      const errorData = err.response?.data;
+      let errorMsg = 'Failed to add payment';
+      
+      if (errorData) {
+        if (errorData.amount) {
+          errorMsg = Array.isArray(errorData.amount) ? errorData.amount[0] : errorData.amount;
+        } else if (errorData.non_field_errors) {
+          errorMsg = Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors;
+        } else if (errorData.detail) {
+          errorMsg = errorData.detail;
+        } else if (typeof errorData === 'string') {
+          errorMsg = errorData;
+        } else {
+          // Try to get the first error from any field
+          const firstKey = Object.keys(errorData)[0];
+          if (firstKey) {
+            const val = errorData[firstKey];
+            errorMsg = Array.isArray(val) ? val[0] : val;
+          }
+        }
+      }
+      
+      setError(errorMsg);
     } finally {
       setSaving(false);
     }
