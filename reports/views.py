@@ -2,6 +2,7 @@ import csv
 from decimal import Decimal
 from datetime import date, timedelta
 from django.http import HttpResponse
+from django.db import models
 from django.db.models import Sum, Count, Avg, F, Q, Max, Value
 from django.db.models.functions import TruncDate, TruncMonth, Coalesce
 from rest_framework.views import APIView
@@ -24,13 +25,21 @@ def safe_float(value):
 
 def get_order_totals(orders):
     """Calculate revenue and profit for a queryset of orders by aggregating items"""
-    from decimal import Decimal
     # Get all order items for these orders
     order_ids = list(orders.values_list('id', flat=True))
     
+    if not order_ids:
+        return 0.0, 0.0, 0.0
+    
     totals = OrderItem.objects.filter(order_id__in=order_ids).aggregate(
-        total_revenue=Sum(F('quantity') * F('unit_price')),
-        total_cost=Sum(F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))))
+        total_revenue=Sum(
+            F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
+            output_field=models.DecimalField()
+        ),
+        total_cost=Sum(
+            F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))),
+            output_field=models.DecimalField()
+        )
     )
     
     revenue = safe_float(totals['total_revenue'])
@@ -185,16 +194,28 @@ class SalesReportView(APIView):
                     period=TruncMonth('order__order_date')
                 ).values('period').annotate(
                     orders=Count('order', distinct=True),
-                    revenue=Sum(F('quantity') * F('unit_price')),
-                    profit=Sum(F('quantity') * (F('unit_price') - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))))
+                    revenue=Sum(
+                        F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
+                        output_field=models.DecimalField()
+                    ),
+                    profit=Sum(
+                        F('quantity') * (Coalesce(F('unit_price'), Value(Decimal('0'))) - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
+                        output_field=models.DecimalField()
+                    )
                 ).order_by('period')
             else:
                 daily_data = items.annotate(
                     period=TruncDate('order__order_date')
                 ).values('period').annotate(
                     orders=Count('order', distinct=True),
-                    revenue=Sum(F('quantity') * F('unit_price')),
-                    profit=Sum(F('quantity') * (F('unit_price') - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))))
+                    revenue=Sum(
+                        F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
+                        output_field=models.DecimalField()
+                    ),
+                    profit=Sum(
+                        F('quantity') * (Coalesce(F('unit_price'), Value(Decimal('0'))) - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
+                        output_field=models.DecimalField()
+                    )
                 ).order_by('period')
             
             data = []
@@ -252,8 +273,14 @@ class CustomerReportView(APIView):
                 'order__customer_id'
             ).annotate(
                 order_count=Count('order', distinct=True),
-                total_spent=Sum(F('quantity') * F('unit_price')),
-                total_profit=Sum(F('quantity') * (F('unit_price') - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))))),
+                total_spent=Sum(
+                    F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
+                    output_field=models.DecimalField()
+                ),
+                total_profit=Sum(
+                    F('quantity') * (Coalesce(F('unit_price'), Value(Decimal('0'))) - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
+                    output_field=models.DecimalField()
+                ),
                 last_order=Max('order__order_date')
             )
             
@@ -341,8 +368,14 @@ class ProductReportView(APIView):
                 'product_id'
             ).annotate(
                 total_qty=Sum('quantity'),
-                total_revenue=Sum(F('quantity') * F('unit_price')),
-                total_cost=Sum(F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
+                total_revenue=Sum(
+                    F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
+                    output_field=models.DecimalField()
+                ),
+                total_cost=Sum(
+                    F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))),
+                    output_field=models.DecimalField()
+                ),
                 order_count=Count('order', distinct=True)
             )
             
@@ -665,8 +698,14 @@ class ExportCustomerCSV(APIView):
             'order__customer__name', 'order__customer__mobile', 'order__customer__apartment_name'
         ).annotate(
             order_count=Count('order', distinct=True),
-            total_spent=Sum(F('quantity') * F('unit_price')),
-            total_profit=Sum(F('quantity') * (F('unit_price') - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))))
+            total_spent=Sum(
+                F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
+                output_field=models.DecimalField()
+            ),
+            total_profit=Sum(
+                F('quantity') * (Coalesce(F('unit_price'), Value(Decimal('0'))) - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
+                output_field=models.DecimalField()
+            )
         ).order_by('-total_spent')
         
         response = HttpResponse(content_type='text/csv')
@@ -720,8 +759,14 @@ class ExportProductCSV(APIView):
             'product__name', 'product__category', 'product__unit'
         ).annotate(
             total_qty=Sum('quantity'),
-            total_revenue=Sum(F('quantity') * F('unit_price')),
-            total_cost=Sum(F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))))
+            total_revenue=Sum(
+                F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
+                output_field=models.DecimalField()
+            ),
+            total_cost=Sum(
+                F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))),
+                output_field=models.DecimalField()
+            )
         ).order_by('-total_revenue')
         
         response = HttpResponse(content_type='text/csv')
