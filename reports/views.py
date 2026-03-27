@@ -172,68 +172,75 @@ class SalesReportView(APIView):
             else:
                 start_date = date.fromisoformat(start_date)
             
-            # Get orders in range
+            # Get orders in range with prefetched items
             orders = Order.objects.filter(
                 order_date__gte=start_date,
                 order_date__lte=end_date
-            ).exclude(status='cancelled')
+            ).exclude(status='cancelled').prefetch_related('items')
             
-            # Summary - aggregate from items
-            total_orders = orders.count()
-            revenue, cost, profit = get_order_totals(orders)
-            avg_order = revenue / total_orders if total_orders > 0 else 0
+            # Calculate totals using Python (avoid SQLite issues)
+            total_orders = 0
+            total_revenue = Decimal('0')
+            total_profit = Decimal('0')
             
-            # Group by date - using order items
-            items = OrderItem.objects.filter(
-                order__order_date__gte=start_date,
-                order__order_date__lte=end_date
-            ).exclude(order__status='cancelled')
+            # Group by date using Python
+            daily_stats = {}
             
-            if group_by == 'month':
-                daily_data = items.annotate(
-                    period=TruncMonth('order__order_date')
-                ).values('period').annotate(
-                    orders=Count('order', distinct=True),
-                    revenue=Sum(
-                        F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
-                        output_field=models.DecimalField()
-                    ),
-                    profit=Sum(
-                        F('quantity') * (Coalesce(F('unit_price'), Value(Decimal('0'))) - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
-                        output_field=models.DecimalField()
-                    )
-                ).order_by('period')
-            else:
-                daily_data = items.annotate(
-                    period=TruncDate('order__order_date')
-                ).values('period').annotate(
-                    orders=Count('order', distinct=True),
-                    revenue=Sum(
-                        F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
-                        output_field=models.DecimalField()
-                    ),
-                    profit=Sum(
-                        F('quantity') * (Coalesce(F('unit_price'), Value(Decimal('0'))) - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
-                        output_field=models.DecimalField()
-                    )
-                ).order_by('period')
+            for order in orders:
+                total_orders += 1
+                order_date = order.order_date
+                
+                # Calculate order revenue and profit from items
+                order_revenue = Decimal('0')
+                order_cost = Decimal('0')
+                for item in order.items.all():
+                    price = item.unit_price or Decimal('0')
+                    cost = item.unit_cost_snapshot or Decimal('0')
+                    qty = item.quantity or 0
+                    order_revenue += qty * price
+                    order_cost += qty * cost
+                
+                order_profit = order_revenue - order_cost
+                total_revenue += order_revenue
+                total_profit += order_profit
+                
+                # Group by date
+                if group_by == 'month':
+                    period_key = order_date.replace(day=1)
+                else:
+                    period_key = order_date
+                
+                if period_key not in daily_stats:
+                    daily_stats[period_key] = {
+                        'orders': 0,
+                        'revenue': Decimal('0'),
+                        'profit': Decimal('0')
+                    }
+                
+                daily_stats[period_key]['orders'] += 1
+                daily_stats[period_key]['revenue'] += order_revenue
+                daily_stats[period_key]['profit'] += order_profit
             
+            # Build response data
             data = []
-            for d in daily_data:
+            for period_key in sorted(daily_stats.keys()):
+                stats = daily_stats[period_key]
                 data.append({
-                    'period': d['period'].isoformat() if d['period'] else None,
-                    'orders': d['orders'] or 0,
-                    'revenue': safe_float(d['revenue']),
-                    'profit': safe_float(d['profit']),
+                    'period': period_key.isoformat(),
+                    'orders': stats['orders'],
+                    'revenue': float(stats['revenue']),
+                    'profit': float(stats['profit']),
                 })
+            
+            avg_order = float(total_revenue) / total_orders if total_orders > 0 else 0
             
             return Response({
                 'start_date': start_date.isoformat(),
                 'end_date': end_date.isoformat(),
                 'summary': {
                     'total_orders': total_orders,
-                    'total_revenue': revenue,
-                    'total_profit': profit,
+                    'total_revenue': float(total_revenue),
+                    'total_profit': float(total_profit),
                     'avg_order_value': round(avg_order, 2),
                 },
                 'data': data
@@ -265,59 +272,66 @@ class CustomerReportView(APIView):
             else:
                 start_date = date.fromisoformat(start_date)
             
-            # Get customer stats from order items
-            customer_data = OrderItem.objects.filter(
-                order__order_date__gte=start_date,
-                order__order_date__lte=end_date
-            ).exclude(order__status='cancelled').values(
-                'order__customer_id'
-            ).annotate(
-                order_count=Count('order', distinct=True),
-                total_spent=Sum(
-                    F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
-                    output_field=models.DecimalField()
-                ),
-                total_profit=Sum(
-                    F('quantity') * (Coalesce(F('unit_price'), Value(Decimal('0'))) - Coalesce(F('unit_cost_snapshot'), Value(Decimal('0')))),
-                    output_field=models.DecimalField()
-                ),
-                last_order=Max('order__order_date')
-            )
+            # Get orders with items using Python calculation (avoid SQLite issues)
+            orders = Order.objects.filter(
+                order_date__gte=start_date,
+                order_date__lte=end_date
+            ).exclude(status='cancelled').select_related('customer').prefetch_related('items')
+            
+            # Aggregate by customer using Python
+            customer_stats = {}
+            for order in orders:
+                cid = order.customer_id
+                if cid not in customer_stats:
+                    customer_stats[cid] = {
+                        'customer': order.customer,
+                        'order_count': 0,
+                        'total_spent': Decimal('0'),
+                        'total_profit': Decimal('0'),
+                        'last_order': None
+                    }
+                
+                customer_stats[cid]['order_count'] += 1
+                if customer_stats[cid]['last_order'] is None or order.order_date > customer_stats[cid]['last_order']:
+                    customer_stats[cid]['last_order'] = order.order_date
+                
+                for item in order.items.all():
+                    price = item.unit_price or Decimal('0')
+                    cost = item.unit_cost_snapshot or Decimal('0')
+                    qty = item.quantity or 0
+                    customer_stats[cid]['total_spent'] += qty * price
+                    customer_stats[cid]['total_profit'] += qty * (price - cost)
+            
+            # Calculate total for percentage
+            total_revenue = sum(float(s['total_spent']) for s in customer_stats.values())
+            
+            # Build result list
+            result = []
+            for cid, stats in customer_stats.items():
+                customer = stats['customer']
+                spent = float(stats['total_spent'])
+                order_count = stats['order_count']
+                avg_order = spent / order_count if order_count > 0 else 0
+                pct = (spent / total_revenue * 100) if total_revenue else 0
+                result.append({
+                    'customer_id': cid,
+                    'customer_name': customer.name,
+                    'mobile': customer.mobile,
+                    'apartment': customer.apartment_name,
+                    'block': customer.block,
+                    'order_count': order_count,
+                    'total_spent': spent,
+                    'total_profit': float(stats['total_profit']),
+                    'avg_order_value': round(avg_order, 2),
+                    'last_order': stats['last_order'].isoformat() if stats['last_order'] else None,
+                    'percentage_share': round(pct, 2),
+                })
             
             # Sort
             if sort_by == 'order_count':
-                customer_data = customer_data.order_by('-order_count')
+                result.sort(key=lambda x: x['order_count'], reverse=True)
             else:
-                customer_data = customer_data.order_by('-total_spent')
-            
-            # Get customer details
-            customer_ids = [c['order__customer_id'] for c in customer_data]
-            customers = {c.id: c for c in Customer.objects.filter(id__in=customer_ids)}
-            
-            # Calculate total for percentage
-            total_revenue = sum(safe_float(c['total_spent']) for c in customer_data)
-            
-            result = []
-            for c in customer_data:
-                customer = customers.get(c['order__customer_id'])
-                if customer:
-                    spent = safe_float(c['total_spent'])
-                    order_count = c['order_count'] or 0
-                    avg_order = spent / order_count if order_count > 0 else 0
-                    pct = (spent / total_revenue * 100) if total_revenue else 0
-                    result.append({
-                        'customer_id': c['order__customer_id'],
-                        'customer_name': customer.name,
-                        'mobile': customer.mobile,
-                        'apartment': customer.apartment_name,
-                        'block': customer.block,
-                        'order_count': order_count,
-                        'total_spent': spent,
-                        'total_profit': safe_float(c['total_profit']),
-                        'avg_order_value': round(avg_order, 2),
-                        'last_order': c['last_order'].isoformat() if c['last_order'] else None,
-                        'percentage_share': round(pct, 2),
-                    })
+                result.sort(key=lambda x: x['total_spent'], reverse=True)
             
             return Response({
                 'start_date': start_date.isoformat(),
@@ -354,58 +368,66 @@ class ProductReportView(APIView):
             else:
                 start_date = date.fromisoformat(start_date)
             
-            # Filter order items
-            items = OrderItem.objects.filter(
-                order__order_date__gte=start_date,
-                order__order_date__lte=end_date
-            ).exclude(order__status='cancelled')
+            # Get order items with Python calculation (avoid SQLite issues)
+            orders = Order.objects.filter(
+                order_date__gte=start_date,
+                order_date__lte=end_date
+            ).exclude(status='cancelled').prefetch_related('items__product')
             
             if category:
-                items = items.filter(product__category=category)
+                # We'll filter in Python
+                pass
             
-            # Aggregate by product
-            product_data = items.values(
-                'product_id'
-            ).annotate(
-                total_qty=Sum('quantity'),
-                total_revenue=Sum(
-                    F('quantity') * Coalesce(F('unit_price'), Value(Decimal('0'))),
-                    output_field=models.DecimalField()
-                ),
-                total_cost=Sum(
-                    F('quantity') * Coalesce(F('unit_cost_snapshot'), Value(Decimal('0'))),
-                    output_field=models.DecimalField()
-                ),
-                order_count=Count('order', distinct=True)
-            )
+            # Aggregate by product using Python
+            product_stats = {}
+            order_products = {}  # Track unique orders per product
             
-            # Get product details
-            product_ids = [p['product_id'] for p in product_data]
-            products = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
-            
-            # Calculate profit and build result
-            result = []
-            for p in product_data:
-                product = products.get(p['product_id'])
-                if product:
-                    revenue = safe_float(p['total_revenue'])
-                    cost = safe_float(p['total_cost'])
-                    profit = revenue - cost
-                    margin = (profit / revenue * 100) if revenue else 0
+            for order in orders:
+                for item in order.items.all():
+                    if category and item.product.category != category:
+                        continue
                     
-                    result.append({
-                        'product_id': p['product_id'],
-                        'product_name': product.name,
-                        'category': product.category,
-                        'unit_size': product.unit,  # Fixed: use 'unit' not 'unit_size'
-                        'selling_price': safe_float(product.selling_price),
-                        'total_qty': p['total_qty'] or 0,
-                        'total_revenue': revenue,
-                        'total_cost': cost,
-                        'total_profit': profit,
-                        'margin_percent': round(margin, 2),
-                        'order_count': p['order_count'] or 0,
-                    })
+                    pid = item.product_id
+                    if pid not in product_stats:
+                        product_stats[pid] = {
+                            'product': item.product,
+                            'total_qty': 0,
+                            'total_revenue': Decimal('0'),
+                            'total_cost': Decimal('0'),
+                        }
+                        order_products[pid] = set()
+                    
+                    price = item.unit_price or Decimal('0')
+                    cost = item.unit_cost_snapshot or Decimal('0')
+                    qty = item.quantity or 0
+                    
+                    product_stats[pid]['total_qty'] += qty
+                    product_stats[pid]['total_revenue'] += qty * price
+                    product_stats[pid]['total_cost'] += qty * cost
+                    order_products[pid].add(order.id)
+            
+            # Build result
+            result = []
+            for pid, stats in product_stats.items():
+                product = stats['product']
+                revenue = float(stats['total_revenue'])
+                cost = float(stats['total_cost'])
+                profit = revenue - cost
+                margin = (profit / revenue * 100) if revenue else 0
+                
+                result.append({
+                    'product_id': pid,
+                    'product_name': product.name,
+                    'category': product.category,
+                    'unit_size': product.unit,
+                    'selling_price': float(product.selling_price),
+                    'total_qty': stats['total_qty'],
+                    'total_revenue': revenue,
+                    'total_cost': cost,
+                    'total_profit': profit,
+                    'margin_percent': round(margin, 2),
+                    'order_count': len(order_products[pid]),
+                })
             
             # Sort
             if sort_by == 'total_qty':
