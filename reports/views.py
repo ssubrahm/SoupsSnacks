@@ -7,11 +7,19 @@ from django.db.models.functions import TruncDate, TruncMonth
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from accounts.permissions import IsOperator
 from orders.models import Order, OrderItem
 from customers.models import Customer
 from catalog.models import Product
 from payments.models import Payment
+
+
+def safe_float(value):
+    """Safely convert Decimal/None to float"""
+    if value is None:
+        return 0.0
+    return float(value)
 
 
 class DashboardView(APIView):
@@ -26,7 +34,7 @@ class DashboardView(APIView):
             # Orders today
             orders_today = Order.objects.filter(order_date=today).count()
             
-            # Pending orders (not delivered/completed/cancelled)
+            # Pending orders
             pending_orders = Order.objects.filter(
                 status__in=['draft', 'confirmed', 'preparing', 'ready']
             ).count()
@@ -52,10 +60,10 @@ class DashboardView(APIView):
                 total=Sum('total_profit')
             )['total'] or Decimal('0')
             
-            # Unpaid amount - simplified to avoid iteration issues
+            # Unpaid amount
             unpaid_orders = Order.objects.filter(
                 payment_status__in=['pending', 'partial']
-            ).exclude(status='cancelled').prefetch_related('payments')
+            ).exclude(status='cancelled')
             
             total_unpaid = Decimal('0')
             for order in unpaid_orders:
@@ -63,34 +71,42 @@ class DashboardView(APIView):
                 total_unpaid += order.total_revenue - paid
             
             # Top 5 products this month
-            top_products = list(OrderItem.objects.filter(
+            top_products_qs = OrderItem.objects.filter(
                 order__order_date__gte=first_of_month
             ).exclude(order__status='cancelled').values(
                 'product__name', 'product__id'
             ).annotate(
                 total_qty=Sum('quantity'),
                 total_revenue=Sum(F('quantity') * F('unit_price'))
-            ).order_by('-total_qty')[:5])
+            ).order_by('-total_qty')[:5]
             
-            # Convert Decimal to float in top_products
-            for p in top_products:
-                if p.get('total_revenue'):
-                    p['total_revenue'] = float(p['total_revenue'])
+            top_products = []
+            for p in top_products_qs:
+                top_products.append({
+                    'product__name': p['product__name'],
+                    'product__id': p['product__id'],
+                    'total_qty': p['total_qty'] or 0,
+                    'total_revenue': safe_float(p['total_revenue']),
+                })
             
             # Top 5 customers this month
-            top_customers = list(Order.objects.filter(
+            top_customers_qs = Order.objects.filter(
                 order_date__gte=first_of_month
             ).exclude(status='cancelled').values(
                 'customer__name', 'customer__id'
             ).annotate(
                 order_count=Count('id'),
                 total_spent=Sum('total_revenue')
-            ).order_by('-total_spent')[:5])
+            ).order_by('-total_spent')[:5]
             
-            # Convert Decimal to float in top_customers
-            for c in top_customers:
-                if c.get('total_spent'):
-                    c['total_spent'] = float(c['total_spent'])
+            top_customers = []
+            for c in top_customers_qs:
+                top_customers.append({
+                    'customer__name': c['customer__name'],
+                    'customer__id': c['customer__id'],
+                    'order_count': c['order_count'] or 0,
+                    'total_spent': safe_float(c['total_spent']),
+                })
             
             # Orders by status
             status_counts = list(Order.objects.values('status').annotate(
@@ -105,10 +121,10 @@ class DashboardView(APIView):
             return Response({
                 'orders_today': orders_today,
                 'pending_orders': pending_orders,
-                'sales_today': float(sales_today),
-                'sales_month': float(sales_month),
-                'profit_month': float(profit_month),
-                'unpaid_amount': float(total_unpaid),
+                'sales_today': safe_float(sales_today),
+                'sales_month': safe_float(sales_month),
+                'profit_month': safe_float(profit_month),
+                'unpaid_amount': safe_float(total_unpaid),
                 'top_products': top_products,
                 'top_customers': top_customers,
                 'status_counts': status_counts,
@@ -117,7 +133,7 @@ class DashboardView(APIView):
         except Exception as e:
             import traceback
             traceback.print_exc()
-            return Response({'error': str(e)}, status=500)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class SalesReportView(APIView):
@@ -125,71 +141,77 @@ class SalesReportView(APIView):
     permission_classes = [IsAuthenticated, IsOperator]
     
     def get(self, request):
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-        group_by = request.query_params.get('group_by', 'day')  # day, month
-        
-        # Default to last 30 days
-        if not end_date:
-            end_date = date.today()
-        else:
-            end_date = date.fromisoformat(end_date)
-        
-        if not start_date:
-            start_date = end_date - timedelta(days=30)
-        else:
-            start_date = date.fromisoformat(start_date)
-        
-        orders = Order.objects.filter(
-            order_date__gte=start_date,
-            order_date__lte=end_date
-        ).exclude(status='cancelled')
-        
-        # Summary
-        summary = orders.aggregate(
-            total_orders=Count('id'),
-            total_revenue=Sum('total_revenue'),
-            total_profit=Sum('total_profit'),
-            avg_order_value=Avg('total_revenue')
-        )
-        
-        # Group by date
-        if group_by == 'month':
-            daily_data = orders.annotate(
-                period=TruncMonth('order_date')
-            ).values('period').annotate(
-                orders=Count('id'),
-                revenue=Sum('total_revenue'),
-                profit=Sum('total_profit')
-            ).order_by('period')
-        else:
-            daily_data = orders.annotate(
-                period=TruncDate('order_date')
-            ).values('period').annotate(
-                orders=Count('id'),
-                revenue=Sum('total_revenue'),
-                profit=Sum('total_profit')
-            ).order_by('period')
-        
-        return Response({
-            'start_date': start_date.isoformat(),
-            'end_date': end_date.isoformat(),
-            'summary': {
-                'total_orders': summary['total_orders'] or 0,
-                'total_revenue': float(summary['total_revenue'] or 0),
-                'total_profit': float(summary['total_profit'] or 0),
-                'avg_order_value': float(summary['avg_order_value'] or 0),
-            },
-            'data': [
-                {
+        try:
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            group_by = request.query_params.get('group_by', 'day')
+            
+            # Default to last 30 days
+            if not end_date:
+                end_date = date.today()
+            else:
+                end_date = date.fromisoformat(end_date)
+            
+            if not start_date:
+                start_date = end_date - timedelta(days=30)
+            else:
+                start_date = date.fromisoformat(start_date)
+            
+            orders = Order.objects.filter(
+                order_date__gte=start_date,
+                order_date__lte=end_date
+            ).exclude(status='cancelled')
+            
+            # Summary
+            summary = orders.aggregate(
+                total_orders=Count('id'),
+                total_revenue=Sum('total_revenue'),
+                total_profit=Sum('total_profit'),
+                avg_order_value=Avg('total_revenue')
+            )
+            
+            # Group by date
+            if group_by == 'month':
+                daily_data = orders.annotate(
+                    period=TruncMonth('order_date')
+                ).values('period').annotate(
+                    orders=Count('id'),
+                    revenue=Sum('total_revenue'),
+                    profit=Sum('total_profit')
+                ).order_by('period')
+            else:
+                daily_data = orders.annotate(
+                    period=TruncDate('order_date')
+                ).values('period').annotate(
+                    orders=Count('id'),
+                    revenue=Sum('total_revenue'),
+                    profit=Sum('total_profit')
+                ).order_by('period')
+            
+            data = []
+            for d in daily_data:
+                data.append({
                     'period': d['period'].isoformat() if d['period'] else None,
-                    'orders': d['orders'],
-                    'revenue': float(d['revenue'] or 0),
-                    'profit': float(d['profit'] or 0),
-                }
-                for d in daily_data
-            ]
-        })
+                    'orders': d['orders'] or 0,
+                    'revenue': safe_float(d['revenue']),
+                    'profit': safe_float(d['profit']),
+                })
+            
+            return Response({
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat(),
+                'summary': {
+                    'total_orders': summary['total_orders'] or 0,
+                    'total_revenue': safe_float(summary['total_revenue']),
+                    'total_profit': safe_float(summary['total_profit']),
+                    'avg_order_value': safe_float(summary['avg_order_value']),
+                },
+                'data': data
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CustomerReportView(APIView):
@@ -197,71 +219,82 @@ class CustomerReportView(APIView):
     permission_classes = [IsAuthenticated, IsOperator]
     
     def get(self, request):
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-        sort_by = request.query_params.get('sort_by', 'total_spent')  # total_spent, order_count, avg_order
-        
-        # Default to last 90 days
-        if not end_date:
-            end_date = date.today()
-        else:
-            end_date = date.fromisoformat(end_date)
-        
-        if not start_date:
-            start_date = end_date - timedelta(days=90)
-        else:
-            start_date = date.fromisoformat(start_date)
-        
-        # Get customer stats
-        customer_data = Order.objects.filter(
-            order_date__gte=start_date,
-            order_date__lte=end_date
-        ).exclude(status='cancelled').values(
-            'customer__id', 'customer__name', 'customer__mobile',
-            'customer__apartment_name', 'customer__block'
-        ).annotate(
-            order_count=Count('id'),
-            total_spent=Sum('total_revenue'),
-            total_profit=Sum('total_profit'),
-            avg_order_value=Avg('total_revenue'),
-            last_order=Max('order_date')
-        )
-        
-        # Sort
-        if sort_by == 'order_count':
-            customer_data = customer_data.order_by('-order_count')
-        elif sort_by == 'avg_order':
-            customer_data = customer_data.order_by('-avg_order_value')
-        else:
-            customer_data = customer_data.order_by('-total_spent')
-        
-        # Calculate total for percentage
-        total_revenue = sum(c['total_spent'] or 0 for c in customer_data)
-        
-        result = []
-        for c in customer_data:
-            pct = (float(c['total_spent'] or 0) / float(total_revenue) * 100) if total_revenue else 0
-            result.append({
-                'customer_id': c['customer__id'],
-                'customer_name': c['customer__name'],
-                'mobile': c['customer__mobile'],
-                'apartment': c['customer__apartment_name'],
-                'block': c['customer__block'],
-                'order_count': c['order_count'],
-                'total_spent': float(c['total_spent'] or 0),
-                'total_profit': float(c['total_profit'] or 0),
-                'avg_order_value': float(c['avg_order_value'] or 0),
-                'last_order': c['last_order'].isoformat() if c['last_order'] else None,
-                'percentage_share': round(pct, 2),
+        try:
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            sort_by = request.query_params.get('sort_by', 'total_spent')
+            
+            # Default to last 90 days
+            if not end_date:
+                end_date = date.today()
+            else:
+                end_date = date.fromisoformat(end_date)
+            
+            if not start_date:
+                start_date = end_date - timedelta(days=90)
+            else:
+                start_date = date.fromisoformat(start_date)
+            
+            # Get customer stats from orders
+            customer_data = Order.objects.filter(
+                order_date__gte=start_date,
+                order_date__lte=end_date
+            ).exclude(status='cancelled').values(
+                'customer_id'
+            ).annotate(
+                order_count=Count('id'),
+                total_spent=Sum('total_revenue'),
+                total_profit=Sum('total_profit'),
+                avg_order_value=Avg('total_revenue'),
+                last_order=Max('order_date')
+            )
+            
+            # Sort
+            if sort_by == 'order_count':
+                customer_data = customer_data.order_by('-order_count')
+            elif sort_by == 'avg_order':
+                customer_data = customer_data.order_by('-avg_order_value')
+            else:
+                customer_data = customer_data.order_by('-total_spent')
+            
+            # Get customer details and build result
+            customer_ids = [c['customer_id'] for c in customer_data]
+            customers = {c.id: c for c in Customer.objects.filter(id__in=customer_ids)}
+            
+            # Calculate total for percentage
+            total_revenue = sum(safe_float(c['total_spent']) for c in customer_data)
+            
+            result = []
+            for c in customer_data:
+                customer = customers.get(c['customer_id'])
+                if customer:
+                    spent = safe_float(c['total_spent'])
+                    pct = (spent / total_revenue * 100) if total_revenue else 0
+                    result.append({
+                        'customer_id': c['customer_id'],
+                        'customer_name': customer.name,
+                        'mobile': customer.mobile,
+                        'apartment': customer.apartment_name,
+                        'block': customer.block,
+                        'order_count': c['order_count'] or 0,
+                        'total_spent': spent,
+                        'total_profit': safe_float(c['total_profit']),
+                        'avg_order_value': safe_float(c['avg_order_value']),
+                        'last_order': c['last_order'].isoformat() if c['last_order'] else None,
+                        'percentage_share': round(pct, 2),
+                    })
+            
+            return Response({
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat(),
+                'total_revenue': total_revenue,
+                'customer_count': len(result),
+                'data': result
             })
-        
-        return Response({
-            'start_date': start_date.isoformat(),
-            'end_date': end_date.isoformat(),
-            'total_revenue': float(total_revenue),
-            'customer_count': len(result),
-            'data': result
-        })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ProductReportView(APIView):
@@ -269,80 +302,90 @@ class ProductReportView(APIView):
     permission_classes = [IsAuthenticated, IsOperator]
     
     def get(self, request):
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-        category = request.query_params.get('category')
-        sort_by = request.query_params.get('sort_by', 'total_revenue')
-        
-        # Default to last 90 days
-        if not end_date:
-            end_date = date.today()
-        else:
-            end_date = date.fromisoformat(end_date)
-        
-        if not start_date:
-            start_date = end_date - timedelta(days=90)
-        else:
-            start_date = date.fromisoformat(start_date)
-        
-        # Filter order items
-        items = OrderItem.objects.filter(
-            order__order_date__gte=start_date,
-            order__order_date__lte=end_date
-        ).exclude(order__status='cancelled')
-        
-        if category:
-            items = items.filter(product__category=category)
-        
-        # Aggregate by product
-        product_data = items.values(
-            'product__id', 'product__name', 'product__category',
-            'product__unit_size', 'product__selling_price'
-        ).annotate(
-            total_qty=Sum('quantity'),
-            total_revenue=Sum(F('quantity') * F('unit_price')),
-            total_cost=Sum(F('quantity') * F('unit_cost_snapshot')),
-            order_count=Count('order', distinct=True)
-        )
-        
-        # Calculate profit and sort
-        result = []
-        for p in product_data:
-            revenue = float(p['total_revenue'] or 0)
-            cost = float(p['total_cost'] or 0)
-            profit = revenue - cost
-            margin = (profit / revenue * 100) if revenue else 0
+        try:
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            category = request.query_params.get('category')
+            sort_by = request.query_params.get('sort_by', 'total_revenue')
             
-            result.append({
-                'product_id': p['product__id'],
-                'product_name': p['product__name'],
-                'category': p['product__category'],
-                'unit_size': p['product__unit_size'],
-                'selling_price': float(p['product__selling_price'] or 0),
-                'total_qty': p['total_qty'],
-                'total_revenue': revenue,
-                'total_cost': cost,
-                'total_profit': profit,
-                'margin_percent': round(margin, 2),
-                'order_count': p['order_count'],
+            # Default to last 90 days
+            if not end_date:
+                end_date = date.today()
+            else:
+                end_date = date.fromisoformat(end_date)
+            
+            if not start_date:
+                start_date = end_date - timedelta(days=90)
+            else:
+                start_date = date.fromisoformat(start_date)
+            
+            # Filter order items
+            items = OrderItem.objects.filter(
+                order__order_date__gte=start_date,
+                order__order_date__lte=end_date
+            ).exclude(order__status='cancelled')
+            
+            if category:
+                items = items.filter(product__category=category)
+            
+            # Aggregate by product
+            product_data = items.values(
+                'product_id'
+            ).annotate(
+                total_qty=Sum('quantity'),
+                total_revenue=Sum(F('quantity') * F('unit_price')),
+                total_cost=Sum(F('quantity') * F('unit_cost_snapshot')),
+                order_count=Count('order', distinct=True)
+            )
+            
+            # Get product details
+            product_ids = [p['product_id'] for p in product_data]
+            products = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
+            
+            # Calculate profit and build result
+            result = []
+            for p in product_data:
+                product = products.get(p['product_id'])
+                if product:
+                    revenue = safe_float(p['total_revenue'])
+                    cost = safe_float(p['total_cost'])
+                    profit = revenue - cost
+                    margin = (profit / revenue * 100) if revenue else 0
+                    
+                    result.append({
+                        'product_id': p['product_id'],
+                        'product_name': product.name,
+                        'category': product.category,
+                        'unit_size': product.unit_size,
+                        'selling_price': safe_float(product.selling_price),
+                        'total_qty': p['total_qty'] or 0,
+                        'total_revenue': revenue,
+                        'total_cost': cost,
+                        'total_profit': profit,
+                        'margin_percent': round(margin, 2),
+                        'order_count': p['order_count'] or 0,
+                    })
+            
+            # Sort
+            if sort_by == 'total_qty':
+                result.sort(key=lambda x: x['total_qty'], reverse=True)
+            elif sort_by == 'total_profit':
+                result.sort(key=lambda x: x['total_profit'], reverse=True)
+            elif sort_by == 'margin_percent':
+                result.sort(key=lambda x: x['margin_percent'], reverse=True)
+            else:
+                result.sort(key=lambda x: x['total_revenue'], reverse=True)
+            
+            return Response({
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat(),
+                'product_count': len(result),
+                'data': result
             })
-        
-        # Sort
-        if sort_by == 'total_qty':
-            result.sort(key=lambda x: x['total_qty'], reverse=True)
-        elif sort_by == 'total_profit':
-            result.sort(key=lambda x: x['total_profit'], reverse=True)
-        elif sort_by == 'margin_percent':
-            result.sort(key=lambda x: x['margin_percent'], reverse=True)
-        else:
-            result.sort(key=lambda x: x['total_revenue'], reverse=True)
-        
-        return Response({
-            'start_date': start_date.isoformat(),
-            'end_date': end_date.isoformat(),
-            'product_count': len(result),
-            'data': result
-        })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UnpaidOrdersReportView(APIView):
@@ -350,40 +393,45 @@ class UnpaidOrdersReportView(APIView):
     permission_classes = [IsAuthenticated, IsOperator]
     
     def get(self, request):
-        orders = Order.objects.filter(
-            payment_status__in=['pending', 'partial']
-        ).exclude(status='cancelled').select_related('customer')
-        
-        result = []
-        total_outstanding = Decimal('0')
-        
-        for order in orders:
-            paid = order.payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-            outstanding = order.total_revenue - paid
-            total_outstanding += outstanding
+        try:
+            orders = Order.objects.filter(
+                payment_status__in=['pending', 'partial']
+            ).exclude(status='cancelled').select_related('customer')
             
-            result.append({
-                'order_id': order.id,
-                'order_number': order.order_number,
-                'order_date': order.order_date.isoformat(),
-                'customer_name': order.customer.name,
-                'customer_mobile': order.customer.mobile,
-                'apartment': order.customer.apartment_name,
-                'order_total': float(order.total_revenue),
-                'amount_paid': float(paid),
-                'outstanding': float(outstanding),
-                'payment_status': order.payment_status,
-                'days_old': (date.today() - order.order_date).days,
+            result = []
+            total_outstanding = Decimal('0')
+            
+            for order in orders:
+                paid = order.payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                outstanding = order.total_revenue - paid
+                total_outstanding += outstanding
+                
+                result.append({
+                    'order_id': order.id,
+                    'order_number': order.order_number,
+                    'order_date': order.order_date.isoformat(),
+                    'customer_name': order.customer.name,
+                    'customer_mobile': order.customer.mobile,
+                    'apartment': order.customer.apartment_name,
+                    'order_total': safe_float(order.total_revenue),
+                    'amount_paid': safe_float(paid),
+                    'outstanding': safe_float(outstanding),
+                    'payment_status': order.payment_status,
+                    'days_old': (date.today() - order.order_date).days,
+                })
+            
+            # Sort by outstanding amount
+            result.sort(key=lambda x: x['outstanding'], reverse=True)
+            
+            return Response({
+                'total_orders': len(result),
+                'total_outstanding': safe_float(total_outstanding),
+                'data': result
             })
-        
-        # Sort by outstanding amount
-        result.sort(key=lambda x: x['outstanding'], reverse=True)
-        
-        return Response({
-            'total_orders': len(result),
-            'total_outstanding': float(total_outstanding),
-            'data': result
-        })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class InactiveCustomersReportView(APIView):
@@ -391,59 +439,68 @@ class InactiveCustomersReportView(APIView):
     permission_classes = [IsAuthenticated, IsOperator]
     
     def get(self, request):
-        days = int(request.query_params.get('days', 30))
-        cutoff_date = date.today() - timedelta(days=days)
-        
-        # Get all active customers
-        customers = Customer.objects.filter(is_active=True)
-        
-        result = []
-        for customer in customers:
-            last_order = Order.objects.filter(
-                customer=customer
-            ).exclude(status='cancelled').order_by('-order_date').first()
+        try:
+            days = int(request.query_params.get('days', 30))
+            cutoff_date = date.today() - timedelta(days=days)
             
-            if last_order:
-                days_since = (date.today() - last_order.order_date).days
-                if days_since >= days:
-                    # Get total spend
-                    total_spent = Order.objects.filter(
-                        customer=customer
-                    ).exclude(status='cancelled').aggregate(
-                        total=Sum('total_revenue')
-                    )['total'] or Decimal('0')
+            # Get all active customers with their last order date
+            customers = Customer.objects.filter(is_active=True)
+            
+            # Get last order for each customer
+            last_orders = Order.objects.filter(
+                customer__is_active=True
+            ).exclude(status='cancelled').values('customer_id').annotate(
+                last_order_date=Max('order_date'),
+                total_spent=Sum('total_revenue')
+            )
+            
+            last_order_map = {lo['customer_id']: lo for lo in last_orders}
+            
+            result = []
+            for customer in customers:
+                lo = last_order_map.get(customer.id)
+                
+                if lo:
+                    last_order_date = lo['last_order_date']
+                    days_since = (date.today() - last_order_date).days if last_order_date else None
+                    total_spent = safe_float(lo['total_spent'])
                     
+                    if days_since is None or days_since >= days:
+                        result.append({
+                            'customer_id': customer.id,
+                            'customer_name': customer.name,
+                            'mobile': customer.mobile,
+                            'apartment': customer.apartment_name,
+                            'block': customer.block,
+                            'last_order_date': last_order_date.isoformat() if last_order_date else None,
+                            'days_since_order': days_since,
+                            'total_spent': total_spent,
+                        })
+                else:
+                    # Never ordered
                     result.append({
                         'customer_id': customer.id,
                         'customer_name': customer.name,
                         'mobile': customer.mobile,
                         'apartment': customer.apartment_name,
                         'block': customer.block,
-                        'last_order_date': last_order.order_date.isoformat(),
-                        'days_since_order': days_since,
-                        'total_spent': float(total_spent),
+                        'last_order_date': None,
+                        'days_since_order': None,
+                        'total_spent': 0,
                     })
-            else:
-                # Never ordered
-                result.append({
-                    'customer_id': customer.id,
-                    'customer_name': customer.name,
-                    'mobile': customer.mobile,
-                    'apartment': customer.apartment_name,
-                    'block': customer.block,
-                    'last_order_date': None,
-                    'days_since_order': None,
-                    'total_spent': 0,
-                })
-        
-        # Sort by days since order
-        result.sort(key=lambda x: x['days_since_order'] or 9999, reverse=True)
-        
-        return Response({
-            'inactive_days_threshold': days,
-            'inactive_count': len(result),
-            'data': result
-        })
+            
+            # Sort by days since order (None = never ordered, sort last)
+            result.sort(key=lambda x: x['days_since_order'] if x['days_since_order'] is not None else 9999, reverse=True)
+            
+            return Response({
+                'inactive_days_threshold': days,
+                'inactive_count': len(result),
+                'data': result
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class OrderProfitabilityReportView(APIView):
@@ -451,60 +508,72 @@ class OrderProfitabilityReportView(APIView):
     permission_classes = [IsAuthenticated, IsOperator]
     
     def get(self, request):
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-        
-        # Default to last 30 days
-        if not end_date:
-            end_date = date.today()
-        else:
-            end_date = date.fromisoformat(end_date)
-        
-        if not start_date:
-            start_date = end_date - timedelta(days=30)
-        else:
-            start_date = date.fromisoformat(start_date)
-        
-        orders = Order.objects.filter(
-            order_date__gte=start_date,
-            order_date__lte=end_date
-        ).exclude(status='cancelled').select_related('customer')
-        
-        result = []
-        for order in orders:
-            margin = (float(order.total_profit) / float(order.total_revenue) * 100) if order.total_revenue else 0
+        try:
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
             
-            result.append({
-                'order_id': order.id,
-                'order_number': order.order_number,
-                'order_date': order.order_date.isoformat(),
-                'customer_name': order.customer.name,
-                'item_count': order.item_count,
-                'total_revenue': float(order.total_revenue),
-                'total_cost': float(order.total_revenue - order.total_profit),
-                'total_profit': float(order.total_profit),
-                'margin_percent': round(margin, 2),
+            # Default to last 30 days
+            if not end_date:
+                end_date = date.today()
+            else:
+                end_date = date.fromisoformat(end_date)
+            
+            if not start_date:
+                start_date = end_date - timedelta(days=30)
+            else:
+                start_date = date.fromisoformat(start_date)
+            
+            orders = Order.objects.filter(
+                order_date__gte=start_date,
+                order_date__lte=end_date
+            ).exclude(status='cancelled').select_related('customer')
+            
+            result = []
+            total_revenue = Decimal('0')
+            total_profit = Decimal('0')
+            
+            for order in orders:
+                revenue = order.total_revenue or Decimal('0')
+                profit = order.total_profit or Decimal('0')
+                cost = revenue - profit
+                margin = (float(profit) / float(revenue) * 100) if revenue else 0
+                
+                total_revenue += revenue
+                total_profit += profit
+                
+                result.append({
+                    'order_id': order.id,
+                    'order_number': order.order_number,
+                    'order_date': order.order_date.isoformat(),
+                    'customer_name': order.customer.name,
+                    'item_count': order.item_count,
+                    'total_revenue': safe_float(revenue),
+                    'total_cost': safe_float(cost),
+                    'total_profit': safe_float(profit),
+                    'margin_percent': round(margin, 2),
+                })
+            
+            # Sort by profit descending
+            result.sort(key=lambda x: x['total_profit'], reverse=True)
+            
+            # Summary
+            avg_margin = (float(total_profit) / float(total_revenue) * 100) if total_revenue else 0
+            
+            return Response({
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat(),
+                'summary': {
+                    'total_orders': len(result),
+                    'total_revenue': safe_float(total_revenue),
+                    'total_profit': safe_float(total_profit),
+                    'avg_margin': round(avg_margin, 2),
+                },
+                'data': result
             })
-        
-        # Sort by profit
-        result.sort(key=lambda x: x['total_profit'], reverse=True)
-        
-        # Summary
-        total_revenue = sum(r['total_revenue'] for r in result)
-        total_profit = sum(r['total_profit'] for r in result)
-        avg_margin = (total_profit / total_revenue * 100) if total_revenue else 0
-        
-        return Response({
-            'start_date': start_date.isoformat(),
-            'end_date': end_date.isoformat(),
-            'summary': {
-                'total_orders': len(result),
-                'total_revenue': total_revenue,
-                'total_profit': total_profit,
-                'avg_margin': round(avg_margin, 2),
-            },
-            'data': result
-        })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # CSV Export Views
@@ -541,7 +610,9 @@ class ExportSalesCSV(APIView):
         ])
         
         for order in orders:
-            margin = (float(order.total_profit) / float(order.total_revenue) * 100) if order.total_revenue else 0
+            revenue = safe_float(order.total_revenue)
+            profit = safe_float(order.total_profit)
+            margin = (profit / revenue * 100) if revenue else 0
             writer.writerow([
                 order.order_number,
                 order.order_date.isoformat(),
@@ -549,9 +620,9 @@ class ExportSalesCSV(APIView):
                 order.customer.mobile,
                 order.customer.apartment_name or '',
                 order.item_count,
-                float(order.total_revenue),
-                float(order.total_revenue - order.total_profit),
-                float(order.total_profit),
+                revenue,
+                revenue - profit,
+                profit,
                 round(margin, 2),
                 order.payment_status,
             ])
@@ -604,9 +675,9 @@ class ExportCustomerCSV(APIView):
                 c['customer__mobile'],
                 c['customer__apartment_name'] or '',
                 c['order_count'],
-                float(c['total_spent'] or 0),
-                float(c['total_profit'] or 0),
-                round(float(c['avg_order_value'] or 0), 2),
+                safe_float(c['total_spent']),
+                safe_float(c['total_profit']),
+                round(safe_float(c['avg_order_value']), 2),
             ])
         
         return response
@@ -653,8 +724,8 @@ class ExportProductCSV(APIView):
         ])
         
         for p in product_data:
-            revenue = float(p['total_revenue'] or 0)
-            cost = float(p['total_cost'] or 0)
+            revenue = safe_float(p['total_revenue'])
+            cost = safe_float(p['total_cost'])
             profit = revenue - cost
             margin = (profit / revenue * 100) if revenue else 0
             
@@ -701,9 +772,9 @@ class ExportUnpaidCSV(APIView):
                 order.customer.name,
                 order.customer.mobile,
                 order.customer.apartment_name or '',
-                float(order.total_revenue),
-                float(paid),
-                float(outstanding),
+                safe_float(order.total_revenue),
+                safe_float(paid),
+                safe_float(outstanding),
                 days_old,
             ])
         
