@@ -1,0 +1,209 @@
+.payments-page {
+  max-width: 1400px;
+  animation: fadeIn 0.4s ease-in;
+}
+
+.payments-page .stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.payments-page .stat-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.payments-page .stat-card.highlight {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.payments-page .stat-card.upi {
+  border-left: 4px solid #1976D2;
+}
+
+.payments-page .stat-card.cash {
+  border-left: 4px solid #388E3C;
+}
+
+.payments-page .stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.payments-page .stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.payments-page .quick-filters {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.payments-page .filter-chip {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 20px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payments-page .filter-chip:hover {
+  transform: translateY(-2px);
+}
+
+.payments-page .filter-chip.active {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+}
+
+.payments-page .filter-chip.upi.active {
+  background: #1976D2;
+  border-color: #1976D2;
+  color: white;
+}
+
+.payments-page .filter-chip.cash.active {
+  background: #388E3C;
+  border-color: #388E3C;
+  color: white;
+}
+
+.payments-page .filter-chip.bank.active {
+  background: #7B1FA2;
+  border-color: #7B1FA2;
+  color: white;
+}
+
+.payments-page .filter-chip.card.active {
+  background: #E67E22;
+  border-color: #E67E22;
+  color: white;
+}
+
+.payments-table-container {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.payments-table thead {
+  background: var(--bg-accent);
+}
+
+.payments-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.payments-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.payments-table tbody tr:hover {
+  background: var(--bg-accent);
+}
+
+.payments-table td {
+  padding: 1rem;
+}
+
+.payments-table td.amount {
+  font-weight: 700;
+  color: var(--accent-green);
+  font-size: 1.1rem;
+}
+
+.payments-table .order-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.payments-table .order-link:hover {
+  text-decoration: underline;
+}
+
+.method-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.method-badge.upi {
+  background: rgba(33, 150, 243, 0.15);
+  color: #1976D2;
+}
+
+.method-badge.cash {
+  background: rgba(76, 175, 80, 0.15);
+  color: #388E3C;
+}
+
+.method-badge.bank_transfer {
+  background: rgba(156, 39, 176, 0.15);
+  color: #7B1FA2;
+}
+
+.method-badge.card {
+  background: rgba(255, 152, 0, 0.15);
+  color: #E67E22;
+}
+
+.method-badge.other {
+  background: rgba(158, 158, 158, 0.15);
+  color: #616161;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+}
+
+.empty-state p {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state .hint {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .payments-table-container {
+    overflow-x: auto;
+  }
+  
+  .payments-table {
+    min-width: 600px;
+  }
+}

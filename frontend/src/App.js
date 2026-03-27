@@ -16,6 +16,7 @@ import DailyOfferings from './pages/DailyOfferings';
 import Orders from './pages/Orders';
 import OrderForm from './pages/OrderForm';
 import OrderDetail from './pages/OrderDetail';
+import Payments from './pages/Payments';
 import './App.css';
 
 function App() {
@@ -169,10 +170,7 @@ function App() {
             element={
               <ProtectedRoute requiredRole="operator">
                 <Layout>
-                  <div style={{ padding: '2rem' }}>
-                    <h2>💰 Payments</h2>
-                    <p>Payment tracking - Coming in Step 7</p>
-                  </div>
+                  <Payments />
                 </Layout>
               </ProtectedRoute>
             }
