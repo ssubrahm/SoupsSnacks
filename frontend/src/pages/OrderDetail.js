@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import PaymentSection from '../components/PaymentSection';
 import './OrderDetail.css';
 
 const OrderDetail = () => {
@@ -310,6 +311,13 @@ const OrderDetail = () => {
           <p className="notes">{order.notes}</p>
         </div>
       )}
+
+      {/* Payment Section */}
+      <PaymentSection 
+        orderId={order.id}
+        orderTotal={order.total_revenue}
+        onPaymentAdded={fetchOrder}
+      />
 
       {/* Metadata */}
       <div className="detail-card metadata">

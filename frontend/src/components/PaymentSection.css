@@ -1,0 +1,139 @@
+.payment-section {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.payment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.payment-header h3 {
+  margin: 0;
+}
+
+.payment-summary {
+  background: var(--bg-accent);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.summary-row.highlight {
+  border-top: 2px solid var(--border-color);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.summary-row .amount {
+  font-weight: 600;
+}
+
+.summary-row .amount.paid {
+  color: var(--accent-green);
+}
+
+.summary-row .amount.outstanding {
+  color: #E67E22;
+}
+
+.payment-form {
+  background: var(--bg-accent);
+  border: 2px dashed var(--primary-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.payment-form h4 {
+  margin: 0 0 1rem 0;
+}
+
+.payment-history h4 {
+  margin: 0 0 1rem 0;
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.payments-table thead {
+  background: var(--bg-accent);
+}
+
+.payments-table th {
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.payments-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.payments-table td {
+  padding: 0.75rem;
+}
+
+.payments-table td.amount {
+  font-weight: 600;
+  color: var(--accent-green);
+}
+
+.method-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.method-badge.upi {
+  background: rgba(33, 150, 243, 0.15);
+  color: #1976D2;
+}
+
+.method-badge.cash {
+  background: rgba(76, 175, 80, 0.15);
+  color: #388E3C;
+}
+
+.method-badge.bank_transfer {
+  background: rgba(156, 39, 176, 0.15);
+  color: #7B1FA2;
+}
+
+.method-badge.card {
+  background: rgba(255, 152, 0, 0.15);
+  color: #E67E22;
+}
+
+.method-badge.other {
+  background: rgba(158, 158, 158, 0.15);
+  color: #616161;
+}
+
+.no-payments {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
