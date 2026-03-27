@@ -19,90 +19,105 @@ class DashboardView(APIView):
     permission_classes = [IsAuthenticated, IsOperator]
     
     def get(self, request):
-        today = date.today()
-        first_of_month = today.replace(day=1)
-        
-        # Orders today
-        orders_today = Order.objects.filter(order_date=today).count()
-        
-        # Pending orders (not delivered/completed/cancelled)
-        pending_orders = Order.objects.filter(
-            status__in=['draft', 'confirmed', 'preparing', 'ready']
-        ).count()
-        
-        # Sales today
-        sales_today = Order.objects.filter(
-            order_date=today
-        ).exclude(status='cancelled').aggregate(
-            total=Sum('total_revenue')
-        )['total'] or Decimal('0')
-        
-        # Sales this month
-        sales_month = Order.objects.filter(
-            order_date__gte=first_of_month
-        ).exclude(status='cancelled').aggregate(
-            total=Sum('total_revenue')
-        )['total'] or Decimal('0')
-        
-        # Profit this month
-        profit_month = Order.objects.filter(
-            order_date__gte=first_of_month
-        ).exclude(status='cancelled').aggregate(
-            total=Sum('total_profit')
-        )['total'] or Decimal('0')
-        
-        # Unpaid amount
-        unpaid_orders = Order.objects.filter(
-            payment_status__in=['pending', 'partial']
-        ).exclude(status='cancelled')
-        
-        total_unpaid = Decimal('0')
-        for order in unpaid_orders:
-            paid = order.payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-            total_unpaid += order.total_revenue - paid
-        
-        # Top 5 products this month
-        top_products = OrderItem.objects.filter(
-            order__order_date__gte=first_of_month
-        ).exclude(order__status='cancelled').values(
-            'product__name', 'product__id'
-        ).annotate(
-            total_qty=Sum('quantity'),
-            total_revenue=Sum(F('quantity') * F('unit_price'))
-        ).order_by('-total_qty')[:5]
-        
-        # Top 5 customers this month
-        top_customers = Order.objects.filter(
-            order_date__gte=first_of_month
-        ).exclude(status='cancelled').values(
-            'customer__name', 'customer__id'
-        ).annotate(
-            order_count=Count('id'),
-            total_spent=Sum('total_revenue')
-        ).order_by('-total_spent')[:5]
-        
-        # Orders by status
-        status_counts = Order.objects.values('status').annotate(
-            count=Count('id')
-        ).order_by('status')
-        
-        # Payment status counts
-        payment_counts = Order.objects.exclude(status='cancelled').values(
-            'payment_status'
-        ).annotate(count=Count('id')).order_by('payment_status')
-        
-        return Response({
-            'orders_today': orders_today,
-            'pending_orders': pending_orders,
-            'sales_today': float(sales_today),
-            'sales_month': float(sales_month),
-            'profit_month': float(profit_month),
-            'unpaid_amount': float(total_unpaid),
-            'top_products': list(top_products),
-            'top_customers': list(top_customers),
-            'status_counts': list(status_counts),
-            'payment_counts': list(payment_counts),
-        })
+        try:
+            today = date.today()
+            first_of_month = today.replace(day=1)
+            
+            # Orders today
+            orders_today = Order.objects.filter(order_date=today).count()
+            
+            # Pending orders (not delivered/completed/cancelled)
+            pending_orders = Order.objects.filter(
+                status__in=['draft', 'confirmed', 'preparing', 'ready']
+            ).count()
+            
+            # Sales today
+            sales_today = Order.objects.filter(
+                order_date=today
+            ).exclude(status='cancelled').aggregate(
+                total=Sum('total_revenue')
+            )['total'] or Decimal('0')
+            
+            # Sales this month
+            sales_month = Order.objects.filter(
+                order_date__gte=first_of_month
+            ).exclude(status='cancelled').aggregate(
+                total=Sum('total_revenue')
+            )['total'] or Decimal('0')
+            
+            # Profit this month
+            profit_month = Order.objects.filter(
+                order_date__gte=first_of_month
+            ).exclude(status='cancelled').aggregate(
+                total=Sum('total_profit')
+            )['total'] or Decimal('0')
+            
+            # Unpaid amount - simplified to avoid iteration issues
+            unpaid_orders = Order.objects.filter(
+                payment_status__in=['pending', 'partial']
+            ).exclude(status='cancelled').prefetch_related('payments')
+            
+            total_unpaid = Decimal('0')
+            for order in unpaid_orders:
+                paid = order.payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                total_unpaid += order.total_revenue - paid
+            
+            # Top 5 products this month
+            top_products = list(OrderItem.objects.filter(
+                order__order_date__gte=first_of_month
+            ).exclude(order__status='cancelled').values(
+                'product__name', 'product__id'
+            ).annotate(
+                total_qty=Sum('quantity'),
+                total_revenue=Sum(F('quantity') * F('unit_price'))
+            ).order_by('-total_qty')[:5])
+            
+            # Convert Decimal to float in top_products
+            for p in top_products:
+                if p.get('total_revenue'):
+                    p['total_revenue'] = float(p['total_revenue'])
+            
+            # Top 5 customers this month
+            top_customers = list(Order.objects.filter(
+                order_date__gte=first_of_month
+            ).exclude(status='cancelled').values(
+                'customer__name', 'customer__id'
+            ).annotate(
+                order_count=Count('id'),
+                total_spent=Sum('total_revenue')
+            ).order_by('-total_spent')[:5])
+            
+            # Convert Decimal to float in top_customers
+            for c in top_customers:
+                if c.get('total_spent'):
+                    c['total_spent'] = float(c['total_spent'])
+            
+            # Orders by status
+            status_counts = list(Order.objects.values('status').annotate(
+                count=Count('id')
+            ).order_by('status'))
+            
+            # Payment status counts
+            payment_counts = list(Order.objects.exclude(status='cancelled').values(
+                'payment_status'
+            ).annotate(count=Count('id')).order_by('payment_status'))
+            
+            return Response({
+                'orders_today': orders_today,
+                'pending_orders': pending_orders,
+                'sales_today': float(sales_today),
+                'sales_month': float(sales_month),
+                'profit_month': float(profit_month),
+                'unpaid_amount': float(total_unpaid),
+                'top_products': top_products,
+                'top_customers': top_customers,
+                'status_counts': status_counts,
+                'payment_counts': payment_counts,
+            })
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=500)
 
 
 class SalesReportView(APIView):
