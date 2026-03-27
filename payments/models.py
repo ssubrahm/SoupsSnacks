@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.core.exceptions import ValidationError
 from orders.models import Order
@@ -69,7 +70,7 @@ class Payment(models.Model):
                 order_total = self.order.total_revenue
                 
                 # Allow slight overpayment (within 0.01) due to rounding
-                if new_total > order_total + 0.01:
+                if new_total > order_total + Decimal('0.01'):
                     raise ValidationError({
                         'amount': f'Total payments (₹{new_total:.2f}) would exceed order total (₹{order_total:.2f}). Outstanding: ₹{order_total - current_total:.2f}'
                     })

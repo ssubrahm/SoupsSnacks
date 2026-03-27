@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework import serializers
 from .models import Payment
 from orders.serializers import OrderListSerializer
@@ -37,7 +38,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             order_total = order.total_revenue
             
             # Check for overpayment (allow 0.01 rounding tolerance)
-            if new_total > order_total + 0.01:
+            if new_total > order_total + Decimal('0.01'):
                 outstanding = order_total - current_total
                 raise serializers.ValidationError({
                     'amount': f'Total payments (₹{new_total:.2f}) would exceed order total (₹{order_total:.2f}). Outstanding: ₹{outstanding:.2f}'
