@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import './CustomerAnalytics.css';
 
 function CustomerAnalytics() {
@@ -43,7 +43,7 @@ function CustomerAnalytics() {
   const fetchDashboard = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/reports/loyalty/dashboard/');
+      const response = await api.get('/api/reports/loyalty/dashboard/');
       setDashboardData(response.data);
       setError(null);
     } catch (err) {
@@ -62,7 +62,7 @@ function CustomerAnalytics() {
       if (recencyFilter) params.append('recency_status', recencyFilter);
       if (sortBy) params.append('sort_by', sortBy);
       
-      const response = await axios.get(`/api/reports/loyalty/customers/?${params}`);
+      const response = await api.get(`/api/reports/loyalty/customers/?${params}`);
       setCustomerList(response.data);
       setError(null);
     } catch (err) {
@@ -75,7 +75,7 @@ function CustomerAnalytics() {
   const fetchRepeatData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/reports/loyalty/repeat/');
+      const response = await api.get('/api/reports/loyalty/repeat/');
       setRepeatData(response.data);
       setError(null);
     } catch (err) {
@@ -88,7 +88,7 @@ function CustomerAnalytics() {
   const fetchFrequencyData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/reports/loyalty/frequency/');
+      const response = await api.get('/api/reports/loyalty/frequency/');
       setFrequencyData(response.data);
       setError(null);
     } catch (err) {
@@ -101,7 +101,7 @@ function CustomerAnalytics() {
   const fetchRecencyData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/reports/loyalty/recency/');
+      const response = await api.get('/api/reports/loyalty/recency/');
       setRecencyData(response.data);
       setError(null);
     } catch (err) {
@@ -114,7 +114,7 @@ function CustomerAnalytics() {
   const fetchLtvData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/reports/loyalty/ltv/');
+      const response = await api.get('/api/reports/loyalty/ltv/');
       setLtvData(response.data);
       setError(null);
     } catch (err) {
@@ -127,7 +127,7 @@ function CustomerAnalytics() {
   const fetchCohortData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/reports/loyalty/cohorts/');
+      const response = await api.get('/api/reports/loyalty/cohorts/');
       setCohortData(response.data);
       setError(null);
     } catch (err) {
