@@ -1,147 +1,256 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const [health, setHealth] = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const checkHealth = async () => {
-    setLoading(true);
-    setError(null);
-    
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const fetchDashboard = async () => {
     try {
-      const response = await api.get('/health/');
-      setHealth(response.data);
-      setLoading(false);
+      setLoading(true);
+      const response = await api.get('/reports/dashboard/');
+      setData(response.data);
       setError(null);
     } catch (err) {
-      console.error('API Health Check Error:', err);
-      let errorMessage = 'Unknown error';
-      
-      if (err.response) {
-        // Server responded with error
-        errorMessage = `Server Error: ${err.response.status} - ${err.response.statusText}`;
-      } else if (err.request) {
-        // Request made but no response
-        errorMessage = 'Cannot connect to backend. Is the Django server running on http://localhost:8000?';
-      } else {
-        // Other errors
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
+      console.error('Dashboard error:', err);
+      setError('Failed to load dashboard data');
+    } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    checkHealth();
-  }, []);
+  const formatCurrency = (amount) => `₹${parseFloat(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const stats = [
-    {
-      title: 'Customers',
-      value: '0',
-      label: 'Total Customers',
-      icon: '👥',
-      color: '#7CB342'
-    },
-    {
-      title: 'Orders',
-      value: '0',
-      label: 'Pending Orders',
-      icon: '🥘',
-      color: '#D4AF37'
-    },
-    {
-      title: 'Products',
-      value: '0',
-      label: 'Active Menu Items',
-      icon: '🍛',
-      color: '#E8B84D'
-    },
-    {
-      title: 'Revenue',
-      value: '$0.00',
-      label: 'This Month',
-      icon: '💰',
-      color: '#C65D3B'
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="dashboard">
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard">
+        <div className="error-state">
+          <p>{error}</p>
+          <button onClick={fetchDashboard} className="btn-primary">Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard">
-      <h2>📊 Dashboard Overview</h2>
-      
-      <div className="health-check">
-        <h3>System Status</h3>
-        {loading && (
-          <p style={{ color: '#718096' }}>
-            <span className="loading-spinner">⟳</span> Checking API connection...
-          </p>
-        )}
-        {error && (
-          <div>
-            <p className="error">
-              ✗ {error}
-            </p>
-            <button 
-              onClick={checkHealth} 
-              className="retry-button"
-              style={{
-                marginTop: '1rem',
-                padding: '0.5rem 1rem',
-                background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: '500',
-                fontSize: '0.875rem'
-              }}
-            >
-              🔄 Retry Connection
-            </button>
-            <div style={{ 
-              marginTop: '1rem', 
-              padding: '1rem', 
-              background: '#FFF5F5', 
-              borderRadius: '6px',
-              fontSize: '0.875rem',
-              color: '#718096'
-            }}>
-              <strong>Troubleshooting:</strong>
-              <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
-                <li>Ensure Django server is running: <code>python manage.py runserver</code></li>
-                <li>Check backend at: <a href="http://localhost:8000/api/health/" target="_blank" rel="noopener noreferrer">http://localhost:8000/api/health/</a></li>
-                <li>Check browser console (F12) for detailed errors</li>
-              </ul>
-            </div>
-          </div>
-        )}
-        {health && (
-          <div className="success">
-            <p>✓ {health.message}</p>
-            <p style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.8 }}>
-              Status: <strong>{health.status}</strong>
-            </p>
-          </div>
-        )}
+      <div className="page-header">
+        <h1>📊 Dashboard</h1>
+        <p className="subtitle">Business overview at a glance</p>
       </div>
 
-      <div className="dashboard-cards">
-        {stats.map((stat, index) => (
-          <div key={index} className="card" style={{ '--accent-color': stat.color }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <h3>{stat.title}</h3>
-              <span style={{ fontSize: '1.75rem', opacity: 0.8 }}>{stat.icon}</span>
-            </div>
-            <p className="stat">{stat.value}</p>
-            <p className="label">{stat.label}</p>
+      {/* KPI Cards */}
+      <div className="kpi-grid">
+        <div className="kpi-card today">
+          <div className="kpi-icon">📦</div>
+          <div className="kpi-content">
+            <div className="kpi-value">{data?.orders_today || 0}</div>
+            <div className="kpi-label">Orders Today</div>
           </div>
-        ))}
+        </div>
+
+        <div className="kpi-card pending">
+          <div className="kpi-icon">⏳</div>
+          <div className="kpi-content">
+            <div className="kpi-value">{data?.pending_orders || 0}</div>
+            <div className="kpi-label">Pending Orders</div>
+          </div>
+        </div>
+
+        <div className="kpi-card sales">
+          <div className="kpi-icon">💰</div>
+          <div className="kpi-content">
+            <div className="kpi-value">{formatCurrency(data?.sales_today)}</div>
+            <div className="kpi-label">Sales Today</div>
+          </div>
+        </div>
+
+        <div className="kpi-card month">
+          <div className="kpi-icon">📈</div>
+          <div className="kpi-content">
+            <div className="kpi-value">{formatCurrency(data?.sales_month)}</div>
+            <div className="kpi-label">Sales This Month</div>
+          </div>
+        </div>
+
+        <div className="kpi-card profit">
+          <div className="kpi-icon">🎯</div>
+          <div className="kpi-content">
+            <div className="kpi-value">{formatCurrency(data?.profit_month)}</div>
+            <div className="kpi-label">Profit This Month</div>
+          </div>
+        </div>
+
+        <div className="kpi-card unpaid">
+          <div className="kpi-icon">⚠️</div>
+          <div className="kpi-content">
+            <div className="kpi-value">{formatCurrency(data?.unpaid_amount)}</div>
+            <div className="kpi-label">Unpaid Amount</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Lists */}
+      <div className="dashboard-grid">
+        {/* Top Products */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>🏆 Top Products (This Month)</h3>
+            <Link to="/reports?tab=products" className="view-all">View All →</Link>
+          </div>
+          <div className="card-content">
+            {data?.top_products?.length > 0 ? (
+              <table className="mini-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.top_products.map((product, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        <span className="rank">{idx + 1}</span>
+                        {product.product__name}
+                      </td>
+                      <td>{product.total_qty}</td>
+                      <td>{formatCurrency(product.total_revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="empty-message">No sales data yet</p>
+            )}
+          </div>
+        </div>
+
+        {/* Top Customers */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>⭐ Top Customers (This Month)</h3>
+            <Link to="/reports?tab=customers" className="view-all">View All →</Link>
+          </div>
+          <div className="card-content">
+            {data?.top_customers?.length > 0 ? (
+              <table className="mini-table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Orders</th>
+                    <th>Spent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.top_customers.map((customer, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        <span className="rank">{idx + 1}</span>
+                        {customer.customer__name}
+                      </td>
+                      <td>{customer.order_count}</td>
+                      <td>{formatCurrency(customer.total_spent)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="empty-message">No customer data yet</p>
+            )}
+          </div>
+        </div>
+
+        {/* Order Status */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>📋 Order Status</h3>
+          </div>
+          <div className="card-content">
+            {data?.status_counts?.length > 0 ? (
+              <div className="status-bars">
+                {data.status_counts.map((status, idx) => (
+                  <div key={idx} className="status-row">
+                    <span className={`status-badge ${status.status}`}>
+                      {status.status}
+                    </span>
+                    <div className="status-bar-container">
+                      <div 
+                        className={`status-bar ${status.status}`}
+                        style={{ 
+                          width: `${Math.min(100, (status.count / Math.max(...data.status_counts.map(s => s.count))) * 100)}%` 
+                        }}
+                      ></div>
+                    </div>
+                    <span className="status-count">{status.count}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-message">No orders yet</p>
+            )}
+          </div>
+        </div>
+
+        {/* Payment Status */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>💳 Payment Status</h3>
+            <Link to="/reports?tab=unpaid" className="view-all">View Unpaid →</Link>
+          </div>
+          <div className="card-content">
+            {data?.payment_counts?.length > 0 ? (
+              <div className="payment-summary">
+                {data.payment_counts.map((payment, idx) => (
+                  <div key={idx} className={`payment-pill ${payment.payment_status}`}>
+                    <span className="payment-label">{payment.payment_status}</span>
+                    <span className="payment-count">{payment.count}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-message">No payment data yet</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="quick-actions">
+        <h3>Quick Actions</h3>
+        <div className="action-buttons">
+          <Link to="/orders/new" className="action-btn primary">
+            ➕ New Order
+          </Link>
+          <Link to="/customers/new" className="action-btn secondary">
+            👤 Add Customer
+          </Link>
+          <Link to="/products/new" className="action-btn secondary">
+            🍛 Add Product
+          </Link>
+          <Link to="/reports" className="action-btn secondary">
+            📊 View Reports
+          </Link>
+        </div>
       </div>
     </div>
   );

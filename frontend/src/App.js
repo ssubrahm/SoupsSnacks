@@ -17,6 +17,7 @@ import Orders from './pages/Orders';
 import OrderForm from './pages/OrderForm';
 import OrderDetail from './pages/OrderDetail';
 import Payments from './pages/Payments';
+import Reports from './pages/Reports';
 import './App.css';
 
 function App() {
@@ -178,12 +179,9 @@ function App() {
           <Route
             path="/reports"
             element={
-              <ProtectedRoute requiredRole="admin">
+              <ProtectedRoute requiredRole="operator">
                 <Layout>
-                  <div style={{ padding: '2rem' }}>
-                    <h2>📈 Reports</h2>
-                    <p>Analytics and reports - Coming in Step 8</p>
-                  </div>
+                  <Reports />
                 </Layout>
               </ProtectedRoute>
             }
