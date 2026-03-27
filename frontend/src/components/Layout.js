@@ -100,7 +100,10 @@ const Layout = ({ children }) => {
             )}
             
             {user?.role === 'admin' && (
-              <li><Link to="/users">👤 Users</Link></li>
+              <>
+                <li><Link to="/import">📥 Import</Link></li>
+                <li><Link to="/users">👤 Users</Link></li>
+              </>
             )}
           </ul>
         </nav>

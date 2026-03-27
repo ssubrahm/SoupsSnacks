@@ -1,0 +1,4 @@
+customer_mobile,order_date,product_name,quantity,unit_price,order_type,delivery_address,notes,status
+9876543210,2026-03-27,Tomato Soup,2,80,delivery,Flat 101 Prestige Lakeside,,confirmed
+9876543210,2026-03-27,Samosa,1,40,delivery,Flat 101 Prestige Lakeside,,confirmed
+9876543211,2026-03-28,Tomato Soup,1,80,pickup,,,confirmed

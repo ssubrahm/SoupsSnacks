@@ -1,0 +1,6 @@
+name,mobile,email,apartment_name,block,address,notes
+IMPORT TEST - Aisha Patel,9811111111,aisha@test.com,Rainbow Heights,Block A,Flat 301,Test import customer
+IMPORT TEST - Vikram Desai,9811111112,vikram@test.com,Rainbow Heights,Block B,Flat 402,Vegetarian only
+IMPORT TEST - Meena Krishnan,9811111113,,Sunrise Apartments,Tower 1,Unit 505,Weekend orders only
+IMPORT TEST - Sanjay Gupta,9811111114,sanjay@test.com,Sunrise Apartments,Tower 2,Unit 101,
+IMPORT TEST - Fatima Khan,9811111115,fatima@test.com,Green Valley,Phase 1,Villa 12,Large family orders

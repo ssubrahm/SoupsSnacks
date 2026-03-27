@@ -1,0 +1,6 @@
+name,category,unit,selling_price,unit_cost,description,is_active
+IMPORT TEST - Mushroom Soup,soups,250ml,90,40,Creamy mushroom soup,true
+IMPORT TEST - Onion Pakoda,snacks,6 pcs,50,22,Crispy onion fritters,true
+IMPORT TEST - Gulab Jamun,sweets,4 pcs,60,25,Soft milk dumplings in syrup,true
+IMPORT TEST - Veg Thali,lunch,1 plate,180,75,Complete vegetarian meal,true
+IMPORT TEST - Lemon Pickle,pickle,200g,100,45,Tangy lemon pickle,true

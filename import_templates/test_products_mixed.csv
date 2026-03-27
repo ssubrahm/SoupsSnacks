@@ -1,0 +1,6 @@
+name,category,unit,selling_price,unit_cost,description,is_active
+IMPORT TEST - Valid Soup,soups,500ml,120,55,Large soup portion,true
+IMPORT TEST - Invalid Category,invalid_cat,1 pc,50,25,INVALID - Bad category,true
+IMPORT TEST - No Price,snacks,2 pcs,,20,INVALID - Missing selling price,true
+IMPORT TEST - Negative Price,snacks,2 pcs,-50,20,INVALID - Negative price,true
+IMPORT TEST - Valid Snack,snacks,4 pcs,80,35,Assorted snacks,true

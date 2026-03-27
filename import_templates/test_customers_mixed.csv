@@ -1,0 +1,7 @@
+name,mobile,email,apartment_name,block,address,notes
+IMPORT TEST - Valid Customer 1,9822222221,valid1@test.com,Test Apartments,A,Flat 101,This row is valid
+IMPORT TEST - Valid Customer 2,9822222222,,Test Apartments,B,Flat 102,Also valid
+,9822222223,noemail@test.com,Test Apartments,C,Flat 103,INVALID - Missing name
+IMPORT TEST - Bad Mobile,abc123,bad@test.com,Test Apartments,D,Flat 104,INVALID - Bad mobile number
+IMPORT TEST - Bad Email,9822222225,not-an-email,Test Apartments,E,Flat 105,INVALID - Bad email format
+IMPORT TEST - Valid Customer 3,9822222226,valid3@test.com,Test Apartments,F,Flat 106,This row is valid

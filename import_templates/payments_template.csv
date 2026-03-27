@@ -1,0 +1,3 @@
+order_number,amount,payment_method,payment_date,reference,notes
+ORD-20260327-0001,200,upi,2026-03-27,UPI123456,Full payment
+ORD-20260328-0001,80,cash,2026-03-28,,Paid in cash
