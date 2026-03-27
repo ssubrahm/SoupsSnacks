@@ -209,6 +209,33 @@ const Orders = () => {
         </div>
       </div>
 
+      <div className="quick-filters">
+        <button 
+          onClick={() => setFilterPayment('')} 
+          className={`filter-chip ${filterPayment === '' ? 'active' : ''}`}
+        >
+          All Payments
+        </button>
+        <button 
+          onClick={() => setFilterPayment('pending')} 
+          className={`filter-chip pending ${filterPayment === 'pending' ? 'active' : ''}`}
+        >
+          💸 Unpaid
+        </button>
+        <button 
+          onClick={() => setFilterPayment('partial')} 
+          className={`filter-chip partial ${filterPayment === 'partial' ? 'active' : ''}`}
+        >
+          ⏳ Partial
+        </button>
+        <button 
+          onClick={() => setFilterPayment('paid')} 
+          className={`filter-chip paid ${filterPayment === 'paid' ? 'active' : ''}`}
+        >
+          ✅ Paid
+        </button>
+      </div>
+
       <div className="filters-section">
         <div className="search-box">
           <input
