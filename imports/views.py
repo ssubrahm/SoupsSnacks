@@ -99,8 +99,17 @@ def parse_date(value, field_name, row_num):
     except (ValueError, TypeError):
         pass
     
-    # Try common date formats
-    formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%d-%m-%Y', '%Y/%m/%d']
+    # Try common date formats (including 2-digit year formats)
+    formats = [
+        '%Y-%m-%d',    # 2026-03-28
+        '%d/%m/%Y',    # 28/03/2026
+        '%d/%m/%y',    # 28/03/26 (2-digit year)
+        '%m/%d/%Y',    # 03/28/2026
+        '%m/%d/%y',    # 03/28/26 (2-digit year)
+        '%d-%m-%Y',    # 28-03-2026
+        '%d-%m-%y',    # 28-03-26 (2-digit year)
+        '%Y/%m/%d',    # 2026/03/28
+    ]
     for fmt in formats:
         try:
             return datetime.strptime(value, fmt).date(), None
