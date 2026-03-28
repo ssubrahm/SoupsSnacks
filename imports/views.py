@@ -87,6 +87,18 @@ def parse_date(value, field_name, row_num):
     
     value = str(value).strip()
     
+    # Check if it's an Excel serial date number (e.g., 46108.22928240741)
+    try:
+        serial = float(value)
+        if 1 < serial < 100000:  # Reasonable range for Excel dates
+            # Excel epoch is 1899-12-30, add serial days
+            from datetime import timedelta
+            excel_epoch = datetime(1899, 12, 30)
+            parsed_date = (excel_epoch + timedelta(days=serial)).date()
+            return parsed_date, None
+    except (ValueError, TypeError):
+        pass
+    
     # Try common date formats
     formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%d-%m-%Y', '%Y/%m/%d']
     for fmt in formats:
@@ -354,10 +366,10 @@ def import_payment_row(row, order_map):
     payment = Payment.objects.create(
         order=order,
         amount=amount,
-        payment_method=row['payment_method'].strip().lower(),
+        method=row['payment_method'].strip().lower(),  # field is 'method' not 'payment_method'
         payment_date=payment_date,
         reference=row.get('reference', '').strip() or None,
-        notes=row.get('notes', '').strip() or None
+        remarks=row.get('notes', '').strip() or None  # field is 'remarks' not 'notes'
     )
     return payment.id
 
