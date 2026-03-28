@@ -187,15 +187,28 @@ def import_product_row(row):
     is_active = row.get('is_active', 'true').strip().lower()
     is_active = is_active not in ['false', '0', 'no', 'n']
     
+    # Note: unit_cost is a calculated property, not a direct field
+    # We create the product first, then add a cost component if unit_cost provided
     product = Product.objects.create(
         name=row['name'].strip(),
         category=row['category'].strip().lower(),
         unit=row['unit'].strip(),
         selling_price=selling_price,
-        unit_cost=unit_cost or Decimal('0'),
         description=row.get('description', '').strip() or None,
         is_active=is_active
     )
+    
+    # If unit_cost provided, create a "Base Cost" component
+    if unit_cost and unit_cost > 0:
+        ProductCostComponent.objects.create(
+            product=product,
+            name='Base Cost (Imported)',
+            cost_type='ingredients',
+            quantity=Decimal('1'),
+            unit_cost=unit_cost,
+            total_cost=unit_cost
+        )
+    
     return product.id
 
 
