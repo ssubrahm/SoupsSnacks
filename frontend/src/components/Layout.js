@@ -102,6 +102,7 @@ const Layout = ({ children }) => {
             {user?.role === 'admin' && (
               <>
                 <li><Link to="/import">📥 Import</Link></li>
+                <li><Link to="/google-sync">📊 Google Sync</Link></li>
                 <li><Link to="/users">👤 Users</Link></li>
               </>
             )}

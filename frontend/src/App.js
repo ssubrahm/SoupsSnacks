@@ -20,6 +20,7 @@ import Payments from './pages/Payments';
 import Reports from './pages/Reports';
 import CustomerAnalytics from './pages/CustomerAnalytics';
 import Import from './pages/Import';
+import GoogleSync from './pages/GoogleSync';
 import './App.css';
 
 function App() {
@@ -204,6 +205,16 @@ function App() {
               <ProtectedRoute requiredRole="admin">
                 <Layout>
                   <Import />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/google-sync"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Layout>
+                  <GoogleSync />
                 </Layout>
               </ProtectedRoute>
             }
