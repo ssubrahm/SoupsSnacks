@@ -202,11 +202,12 @@ def import_product_row(row):
     if unit_cost and unit_cost > 0:
         ProductCostComponent.objects.create(
             product=product,
-            name='Base Cost (Imported)',
-            cost_type='ingredients',
+            item_name='Base Cost (Imported)',
+            item_type='ingredient',
             quantity=Decimal('1'),
-            unit_cost=unit_cost,
-            total_cost=unit_cost
+            unit_of_measure='unit',
+            cost_per_unit=unit_cost
+            # total_cost is auto-calculated in save()
         )
     
     return product.id
