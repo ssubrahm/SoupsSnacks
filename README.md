@@ -1,204 +1,310 @@
-# Soups, Snacks, and More - Order Management System
+# Soups, Snacks & More 🍲
 
-A web application for managing a home food business specializing in soups, Indian snacks, sweets, and small meal orders.
+A modern order management system for home food businesses, built with Django and React.
 
-## Tech Stack
+## Features
 
-### Backend
-- Django 5.2.12
-- Django REST Framework 3.17.0
-- SQLite Database
+- **Customer Management** - Track customers with Bangalore apartment/block filters
+- **Product Catalog** - Products with detailed cost breakdown and profit margins
+- **Daily Offerings** - Manage daily menus with WhatsApp/Email export
+- **Order Management** - Full order lifecycle with status tracking
+- **Payment Tracking** - Multiple payment methods with automatic status updates
+- **Business Reports** - Sales, profitability, customer analytics
+- **Google Forms Integration** - Import orders from Google Forms/Sheets
+- **CSV/Excel Import** - Bulk import customers, products, orders, payments
+- **Role-based Access** - Admin, Operator, Cook roles with different permissions
+- **Day/Night Mode** - Indian-inspired warm color palette
+
+## Quick Start
+
+### Prerequisites
+
 - Python 3.10+
+- Node.js 18+
+- Git
 
-### Frontend
-- React 18
-- React Router DOM
-- Axios for API calls
-- CSS3 with responsive design
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/ssubrahm/SoupsSnacks.git
+cd SoupsSnacks
+
+# Create and activate virtual environment
+python -m venv SSCo
+source SSCo/bin/activate  # On Windows: SSCo\Scripts\activate
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Install frontend dependencies
+cd frontend
+npm install
+cd ..
+
+# Run migrations
+python manage.py migrate
+
+# Create initial admin user
+python manage.py createsuperuser
+
+# Start the application
+./setup.sh
+```
+
+### Seed Demo Data (Optional)
+
+```bash
+# Seed demo data for testing
+python seed_demo_data.py
+
+# Reset and reseed
+python seed_demo_data.py --reset
+```
+
+This creates:
+- 3 users (admin/operator/cook)
+- 30 customers with Bangalore apartments
+- 12 products with cost components
+- 50 orders with items and payments
+- 10 daily offerings
+
+**Demo Credentials:**
+- Admin: `admin` / `admin123`
+- Operator: `operator` / `operator123`
+- Cook: `cook` / `cook123`
+
+## Usage
+
+### Starting the Application
+
+```bash
+./setup.sh
+```
+
+This starts:
+- Django backend on http://localhost:8000
+- React frontend on http://localhost:3000
+
+### Manual Start
+
+```bash
+# Terminal 1 - Backend
+source SSCo/bin/activate
+python manage.py runserver
+
+# Terminal 2 - Frontend
+cd frontend
+npm start
+```
 
 ## Project Structure
 
 ```
 SoupsSnacks/
-├── backend (Django apps)
-│   ├── accounts/          # User accounts and authentication
-│   ├── customers/         # Customer management
-│   ├── catalog/           # Products and menu management
-│   ├── orders/            # Order processing
+├── backend/
+│   ├── soupssnacks/       # Django settings
+│   ├── users/             # User management
+│   ├── customers/         # Customer CRUD
+│   ├── catalog/           # Products & cost components
+│   ├── offerings/         # Daily offerings
+│   ├── orders/            # Orders & order items
 │   ├── payments/          # Payment tracking
-│   ├── reports/           # Analytics and reporting
-│   ├── imports/           # Data import utilities
-│   └── integrations/      # External integrations
-├── frontend/              # React application
+│   ├── reports/           # Dashboard & reports
+│   ├── imports/           # CSV/Excel import
+│   └── integrations/      # Google Sheets integration
+├── frontend/
 │   ├── src/
-│   │   ├── components/    # Reusable UI components
+│   │   ├── components/    # Reusable components
 │   │   ├── pages/         # Page components
-│   │   └── services/      # API service layer
-└── soupssnacks/           # Django project settings
+│   │   ├── contexts/      # React contexts
+│   │   ├── services/      # API services
+│   │   └── styles/        # Global styles
+│   └── public/
+├── seed_demo_data.py      # Demo data script
+├── setup.sh               # Start script
+└── requirements.txt       # Python dependencies
 ```
 
-## Local Setup Instructions
+## User Roles
 
-### Prerequisites
-- Python 3.10 or higher
-- Node.js 16 or higher
-- npm or yarn
+| Role | Permissions |
+|------|-------------|
+| **Admin** | Full access to all features including user management, imports, and Google Sync |
+| **Operator** | Customers, orders, payments, reports, analytics |
+| **Cook** | Product catalog (menu items), dashboard view |
 
-### Backend Setup
+## Features Guide
 
-1. **Navigate to the project directory:**
-   ```bash
-   cd SoupsSnacks
-   ```
+### Customer Management
 
-2. **Create and activate a virtual environment (recommended):**
-   ```bash
-   python3 -m venv SSCo
-   source SSCo/bin/activate  # On Windows: SSCo\Scripts\activate
-   ```
+- Add customers with name, mobile, email
+- Filter by apartment and block
+- Track active/inactive status
+- View order history per customer
 
-3. **Install Python dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Product Catalog
 
-4. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env if needed
-   ```
+- Categories: Soups, Snacks, Sweets, Lunch, Dinner, Pickle, Combos
+- Cost components: Ingredients, Packaging, Labor, Overhead
+- Auto-calculated: Unit Cost, Profit, Margin %
+- Product images with category-specific placeholders
 
-5. **Run database migrations:**
-   ```bash
-   python manage.py migrate
-   ```
+### Order Management
 
-6. **Create a superuser (optional):**
-   ```bash
-   python manage.py createsuperuser
-   ```
+- Order statuses: Draft → Confirmed → Preparing → Ready → Delivered → Completed
+- Payment statuses: Pending → Partial → Paid
+- Order number format: ORD-YYYYMMDD-XXXX
+- Cost snapshot preserves historical costs for reporting
 
-7. **Start the Django development server:**
-   ```bash
-   python manage.py runserver
-   ```
+### Payment Tracking
 
-   The backend API will be available at `http://localhost:8000/`
+- Methods: UPI, Cash, Bank Transfer, Card, Other
+- Automatic payment status updates
+- Overpayment validation
+- Quick filters for unpaid/partial/paid orders
 
-### Frontend Setup
+### Daily Offerings
 
-1. **Navigate to the frontend directory:**
-   ```bash
-   cd frontend
-   ```
+- Select products to offer each day
+- Set optional quantity limits
+- Export formatted text for WhatsApp/Email sharing
 
-2. **Install Node dependencies:**
-   ```bash
-   npm install
-   ```
+### Reports & Analytics
 
-3. **Start the React development server:**
-   ```bash
-   npm start
-   ```
+- Dashboard with KPIs and trends
+- Sales reports by period
+- Product performance analysis
+- Customer analytics with segmentation
+- Profitability reports
+- CSV export for all reports
 
-   The frontend will be available at `http://localhost:3000/`
+### Google Forms Integration
 
-## Validation Steps
+1. Create a Google Form for orders
+2. Link to Google Sheets
+3. Set up Google Cloud Service Account
+4. Share sheet with service account email
+5. Configure mapping in the app
+6. Click "Sync Now" to import orders
 
-### Test Backend
-1. Check API health endpoint:
-   ```bash
-   curl http://localhost:8000/api/health/
-   ```
-   Expected response: `{"status": "healthy", "message": "Soups, Snacks, and More API is running"}`
+See `GOOGLE_FORMS_SETUP.md` for detailed instructions.
 
-2. Access Django admin:
-   - Navigate to `http://localhost:8000/admin/`
-   - Login with superuser credentials
+### CSV/Excel Import
 
-### Test Frontend
-1. Navigate to `http://localhost:3000/`
-2. Verify the layout renders with:
-   - Header with app name
-   - Sidebar navigation
-   - Dashboard page
-3. Confirm API connection shows "✓ Soups, Snacks, and More API is running"
-4. Test sidebar menu items (currently show placeholder pages)
-
-### Test Database
-1. Check that SQLite database was created:
-   ```bash
-   ls -l db.sqlite3
-   ```
-
-2. Run test command:
-   ```bash
-   python manage.py seed_data
-   ```
-   Should show: "Seed command framework ready"
-
-## Current Features (Step 1 - Foundation)
-- ✅ Django backend with modular app structure
-- ✅ Django REST Framework configured
-- ✅ SQLite database
-- ✅ CORS enabled for frontend-backend communication
-- ✅ React frontend with routing
-- ✅ Responsive layout with sidebar navigation
-- ✅ API health check endpoint
-- ✅ Seed command framework
-- ✅ Environment-based configuration
-
-## Next Steps
-The application will be built incrementally following this sequence:
-1. ✅ Project foundation (current)
-2. Auth and roles
-3. Customers
-4. Catalog and costing
-5. Daily offerings
-6. Orders
-7. Payments
-8. Dashboard and reports
-9. Customer loyalty analytics
-10. Imports
-11. Google Forms/Sheets integration
-12. Polish and hardening
-
-## Development Commands
-
-### Django
-```bash
-source SSCo/bin/activate                # Activate virtual environment
-python manage.py runserver              # Start server
-python manage.py makemigrations         # Create migrations
-python manage.py migrate                # Apply migrations
-python manage.py createsuperuser        # Create admin user
-python manage.py seed_data              # Seed database (placeholder)
-```
-
-### React
-```bash
-npm start                               # Start dev server
-npm run build                           # Build for production
-npm test                                # Run tests
-```
+Import templates available for:
+- Customers
+- Products
+- Orders
+- Payments
 
 ## API Endpoints
 
-Base URL: `http://localhost:8000/api/`
+### Authentication
+- `POST /api/users/login/` - Login
+- `POST /api/users/logout/` - Logout
+- `GET /api/users/me/` - Current user
 
-### Current Endpoints
-- `GET /health/` - API health check
+### Customers
+- `GET/POST /api/customers/customers/` - List/Create
+- `GET/PUT/DELETE /api/customers/customers/{id}/` - Detail
 
-### Planned Endpoints (coming in future steps)
-- `/accounts/` - Authentication and user management
-- `/customers/` - Customer CRUD operations
-- `/catalog/` - Product and menu management
-- `/orders/` - Order management
-- `/payments/` - Payment tracking
-- `/reports/` - Analytics and reports
-- `/imports/` - Data import
-- `/integrations/` - External integrations
+### Products
+- `GET/POST /api/catalog/products/` - List/Create
+- `GET/PUT/DELETE /api/catalog/products/{id}/` - Detail
+
+### Orders
+- `GET/POST /api/orders/orders/` - List/Create
+- `GET/PUT/DELETE /api/orders/orders/{id}/` - Detail
+
+### Payments
+- `GET/POST /api/payments/payments/` - List/Create
+- `GET/DELETE /api/payments/payments/{id}/` - Detail
+
+### Reports
+- `GET /api/reports/dashboard/` - Dashboard KPIs
+- `GET /api/reports/sales/` - Sales report
+- `GET /api/reports/customers/` - Customer report
+- `GET /api/reports/products/` - Product report
+
+## Configuration
+
+### Environment Variables
+
+Create `.env` file in project root:
+
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# For Google Sheets integration
+GOOGLE_CREDENTIALS_JSON='{"type":"service_account",...}'
+```
+
+Or place `google_credentials.json` file in project root.
+
+### CORS Settings
+
+For production, update `CORS_ALLOWED_ORIGINS` in `soupssnacks/settings.py`.
+
+## Deployment
+
+### Production Checklist
+
+1. Set `DEBUG=False`
+2. Generate new `SECRET_KEY`
+3. Configure `ALLOWED_HOSTS`
+4. Set up proper database (PostgreSQL recommended)
+5. Configure static file serving
+6. Set up HTTPS
+7. Build React frontend: `cd frontend && npm run build`
+8. Collect static files: `python manage.py collectstatic`
+
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+python manage.py test
+
+# Run specific app tests
+python manage.py test orders.tests
+```
+
+### Code Style
+
+- Python: Follow PEP 8
+- JavaScript: ESLint with React rules
+- CSS: BEM-like naming convention
+
+## Troubleshooting
+
+### Common Issues
+
+**CSRF Error on Login**
+- Ensure `CSRF_TRUSTED_ORIGINS` includes your frontend URL
+- Check that `withCredentials: true` is set in axios
+
+**Google Sheets Connection Failed**
+- Verify `google_credentials.json` exists
+- Check sheet is shared with service account email
+- Ensure Google Sheets API is enabled
+
+**Products/Orders Not Loading**
+- Check Django server is running
+- Verify API endpoint paths match
+- Check browser console for errors
 
 ## License
-Private project for Soups, Snacks, and More business.
+
+MIT License - See LICENSE file for details.
+
+## Support
+
+For issues and feature requests, please use the GitHub issue tracker.
+
+---
+
+Made with ❤️ for home food businesses in Bangalore

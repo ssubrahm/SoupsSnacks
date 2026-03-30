@@ -21,6 +21,7 @@ import Reports from './pages/Reports';
 import CustomerAnalytics from './pages/CustomerAnalytics';
 import Import from './pages/Import';
 import GoogleSync from './pages/GoogleSync';
+import './styles/global.css';
 import './App.css';
 
 function App() {
