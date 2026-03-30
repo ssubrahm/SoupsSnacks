@@ -269,20 +269,20 @@ def sync_google_sheet(config_id, user=None):
                 apartment = get_cell_value(row, mapping.get('apartment'))
                 block = get_cell_value(row, mapping.get('block'))
                 product_name = get_cell_value(row, mapping.get('product_name'))
-                quantity = get_cell_value(row, mapping.get('quantity'))
+                quantity = get_cell_value(row, mapping.get('quantity'))  # Can be "500g", "1 KG", or a number
+                size = get_cell_value(row, mapping.get('size'))  # Optional separate size field
                 order_date = get_cell_value(row, mapping.get('order_date'))
                 notes = get_cell_value(row, mapping.get('notes'))
+                
+                # If size field is mapped separately, use it; otherwise quantity might contain size
+                if size:
+                    quantity = size  # Size takes precedence for product matching
                 
                 # Validate required fields
                 if not mobile:
                     errors.append(f"Row {row_num}: Missing mobile number")
                     rows_failed += 1
                     continue
-                
-                # Parse quantity
-                qty = parse_value(quantity, 'integer')
-                if qty is None or qty <= 0:
-                    qty = 1
                 
                 # Parse order date
                 parsed_date = parse_value(order_date, 'date')
@@ -298,16 +298,59 @@ def sync_google_sheet(config_id, user=None):
                     rows_failed += 1
                     continue
                 
-                # Find product
-                product = default_product
-                if product_name:
+                # Find product - smart matching for size/variant selection
+                # The "quantity" field from form might be "500g" or "1 KG" (text, not number)
+                product = None
+                qty = 1  # Default quantity is always 1 when using size variants
+                
+                # Clean up the values
+                product_search = (product_name or '').strip()
+                size_selection = (quantity or '').strip()
+                
+                # Strategy 1: Try matching "product_name size" (e.g., "Tender Mango Pickle 500g")
+                if product_search and size_selection:
+                    combined_search = f"{product_search} {size_selection}"
                     product = Product.objects.filter(
-                        name__icontains=product_name.strip(),
+                        name__icontains=combined_search,
                         is_active=True
                     ).first()
                 
+                # Strategy 2: Try matching just the size in product name (e.g., "500g" matches "Tender Mango Pickle 500g")
+                if not product and size_selection:
+                    product = Product.objects.filter(
+                        name__icontains=size_selection,
+                        is_active=True
+                    ).first()
+                
+                # Strategy 3: Try matching product name alone
+                if not product and product_search:
+                    product = Product.objects.filter(
+                        name__icontains=product_search,
+                        is_active=True
+                    ).first()
+                
+                # Strategy 4: Try matching size in product's unit field
+                if not product and size_selection:
+                    product = Product.objects.filter(
+                        unit__icontains=size_selection,
+                        is_active=True
+                    ).first()
+                
+                # Strategy 5: Fall back to default product
                 if not product:
-                    errors.append(f"Row {row_num}: Product not found: {product_name}")
+                    product = default_product
+                
+                # If quantity looks like a number, use it as actual quantity
+                if not product and size_selection:
+                    # Last resort: try parsing as integer quantity with default product
+                    parsed_qty = parse_value(size_selection, 'integer')
+                    if parsed_qty and parsed_qty > 0 and default_product:
+                        product = default_product
+                        qty = parsed_qty
+                
+                if not product:
+                    search_terms = f"product='{product_search}', size='{size_selection}'"
+                    errors.append(f"Row {row_num}: Product not found ({search_terms})")
                     rows_failed += 1
                     continue
                 

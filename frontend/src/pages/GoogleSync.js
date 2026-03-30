@@ -25,6 +25,7 @@ function GoogleSync() {
       block: '',
       product_name: 'D',
       quantity: 'E',
+      size: '',
       order_date: 'A',
       notes: ''
     },
