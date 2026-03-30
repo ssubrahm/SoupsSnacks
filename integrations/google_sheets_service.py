@@ -131,8 +131,19 @@ def parse_value(value, field_type='string'):
         except (InvalidOperation, ValueError):
             return None
     elif field_type == 'date':
-        # Try various formats
-        formats = ['%Y-%m-%d', '%d/%m/%Y', '%d/%m/%y', '%m/%d/%Y', '%d-%m-%Y']
+        # Try various date/datetime formats (including Google Forms timestamps)
+        formats = [
+            '%m/%d/%Y %H:%M:%S',  # Google Forms: 3/29/2026 14:30:45
+            '%m/%d/%Y %H:%M',     # 3/29/2026 14:30
+            '%d/%m/%Y %H:%M:%S',  # 29/03/2026 14:30:45
+            '%d/%m/%Y %H:%M',     # 29/03/2026 14:30
+            '%Y-%m-%d %H:%M:%S',  # 2026-03-29 14:30:45
+            '%Y-%m-%d',           # 2026-03-29
+            '%d/%m/%Y',           # 29/03/2026
+            '%d/%m/%y',           # 29/03/26
+            '%m/%d/%Y',           # 03/29/2026
+            '%d-%m-%Y',           # 29-03-2026
+        ]
         for fmt in formats:
             try:
                 return datetime.strptime(value, fmt).date()
@@ -356,13 +367,19 @@ def sync_google_sheet(config_id, user=None):
                 
                 # Create order
                 with transaction.atomic():
+                    # Build notes - include customer comments if provided
+                    order_notes = ""
+                    if notes:
+                        order_notes = notes
+                    order_notes = f"[Google Form] {order_notes}".strip() if order_notes else "[Google Form]"
+                    
                     order = Order.objects.create(
                         customer=customer,
                         order_date=parsed_date,
                         order_type=config.default_order_type,
                         status='confirmed',
                         payment_status='pending',
-                        notes=f"Imported from Google Form. {notes or ''}"
+                        notes=order_notes
                     )
                     
                     # Create order item

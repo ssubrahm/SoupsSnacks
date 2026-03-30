@@ -444,6 +444,16 @@ function GoogleSync() {
                         maxLength={2}
                       />
                     </div>
+                    <div className="form-group">
+                      <label>Notes Column</label>
+                      <input
+                        type="text"
+                        value={formData.field_mapping.notes || ''}
+                        onChange={(e) => updateFieldMapping('notes', e.target.value)}
+                        placeholder="e.g., F (comments)"
+                        maxLength={2}
+                      />
+                    </div>
                   </div>
                 </div>
 
