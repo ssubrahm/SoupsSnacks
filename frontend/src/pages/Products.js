@@ -11,6 +11,8 @@ const Products = () => {
   const [filterActive, setFilterActive] = useState('all');
   const [filterCategory, setFilterCategory] = useState('');
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, by_category: {} });
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [deleting, setDeleting] = useState(false);
 
   const categories = [
     { value: '', label: 'All Categories' },
@@ -78,6 +80,43 @@ const Products = () => {
     return 'low';
   };
 
+  const handleSelectProduct = (id) => {
+    setSelectedProducts(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleSelectAll = () => {
+    setSelectedProducts(selectedProducts.length === products.length ? [] : products.map(p => p.id));
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedProducts.length === 0) return;
+    const msg = selectedProducts.length === 1 ? 'Delete this product?' : `Delete ${selectedProducts.length} products?`;
+    if (!window.confirm(msg)) return;
+    
+    setDeleting(true);
+    try {
+      await Promise.all(selectedProducts.map(id => api.delete(`/catalog/products/${id}/`)));
+      setSelectedProducts([]);
+      fetchProducts();
+      fetchStats();
+    } catch (err) {
+      setError('Failed to delete. Product may have orders.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async (id, name) => {
+    if (!window.confirm(`Delete product "${name}"?`)) return;
+    try {
+      await api.delete(`/catalog/products/${id}/`);
+      fetchProducts();
+      fetchStats();
+    } catch (err) {
+      setError('Failed to delete. Product may have orders.');
+    }
+  };
+
   return (
     <div className="products-page">
       <div className="page-header">
@@ -85,9 +124,16 @@ const Products = () => {
           <h2>🍛 Product Catalog</h2>
           <p className="page-subtitle">Manage menu items with cost tracking</p>
         </div>
-        <Link to="/catalog/new" className="btn-primary">
-          + Add Product
-        </Link>
+        <div className="header-actions">
+          {selectedProducts.length > 0 && (
+            <button onClick={handleDeleteSelected} className="btn-danger" disabled={deleting}>
+              🗑️ Delete ({selectedProducts.length})
+            </button>
+          )}
+          <Link to="/catalog/new" className="btn-primary">
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       <div className="stats-cards">
@@ -176,7 +222,10 @@ const Products = () => {
             </div>
           ) : (
             products.map((product) => (
-              <div key={product.id} className="product-card">
+              <div key={product.id} className={`product-card ${selectedProducts.includes(product.id) ? 'selected' : ''}`}>
+                <div className="product-select">
+                  <input type="checkbox" checked={selectedProducts.includes(product.id)} onChange={() => handleSelectProduct(product.id)} />
+                </div>
                 {product.display_image_url && (
                   <div className="product-image">
                     <img src={product.display_image_url} alt={product.name} />
@@ -224,16 +273,11 @@ const Products = () => {
                 </div>
 
                 <div className="product-actions">
-                  <Link to={`/catalog/${product.id}/edit`} className="btn-icon" title="Edit">
-                    ✏️
-                  </Link>
-                  <button
-                    onClick={() => toggleActive(product.id)}
-                    className="btn-icon"
-                    title={product.is_active ? 'Deactivate' : 'Activate'}
-                  >
+                  <Link to={`/catalog/${product.id}/edit`} className="btn-icon" title="Edit">✏️</Link>
+                  <button onClick={() => toggleActive(product.id)} className="btn-icon" title={product.is_active ? 'Deactivate' : 'Activate'}>
                     {product.is_active ? '🔒' : '🔓'}
                   </button>
+                  <button onClick={() => handleDeleteSingle(product.id, product.name)} className="btn-icon btn-delete" title="Delete">🗑️</button>
                 </div>
               </div>
             ))

@@ -14,6 +14,8 @@ const Orders = () => {
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [selectedOrders, setSelectedOrders] = useState([]);
+  const [deleting, setDeleting] = useState(false);
 
   const statuses = [
     { value: '', label: 'All Statuses' },
@@ -123,6 +125,56 @@ const Orders = () => {
     }
   };
 
+  const handleSelectOrder = (orderId) => {
+    setSelectedOrders(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedOrders.length === orders.length) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(orders.map(o => o.id));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedOrders.length === 0) return;
+    
+    const confirmMsg = selectedOrders.length === 1 
+      ? 'Are you sure you want to delete this order?' 
+      : `Are you sure you want to delete ${selectedOrders.length} orders?`;
+    
+    if (!window.confirm(confirmMsg)) return;
+    
+    setDeleting(true);
+    try {
+      await Promise.all(selectedOrders.map(id => api.delete(`/orders/orders/${id}/`)));
+      setSelectedOrders([]);
+      fetchOrders();
+      fetchStats();
+    } catch (err) {
+      setError('Failed to delete orders');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async (orderId, orderNumber) => {
+    if (!window.confirm(`Delete order ${orderNumber}?`)) return;
+    
+    try {
+      await api.delete(`/orders/orders/${orderId}/`);
+      fetchOrders();
+      fetchStats();
+    } catch (err) {
+      setError('Failed to delete order');
+    }
+  };
+
   return (
     <div className="orders-page">
       <div className="page-header">
@@ -131,6 +183,15 @@ const Orders = () => {
           <p className="page-subtitle">Manage customer orders</p>
         </div>
         <div className="header-actions">
+          {selectedOrders.length > 0 && (
+            <button 
+              onClick={handleDeleteSelected} 
+              className="btn-danger"
+              disabled={deleting}
+            >
+              🗑️ Delete ({selectedOrders.length})
+            </button>
+          )}
           <button onClick={() => setShowImport(!showImport)} className="btn-secondary">
             📥 Import CSV
           </button>
@@ -292,6 +353,13 @@ const Orders = () => {
             <table className="orders-table">
               <thead>
                 <tr>
+                  <th className="checkbox-col">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedOrders.length === orders.length && orders.length > 0}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th>Order #</th>
                   <th>Customer</th>
                   <th>Date</th>
@@ -306,7 +374,14 @@ const Orders = () => {
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order.id}>
+                  <tr key={order.id} className={selectedOrders.includes(order.id) ? 'selected' : ''}>
+                    <td className="checkbox-col">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedOrders.includes(order.id)}
+                        onChange={() => handleSelectOrder(order.id)}
+                      />
+                    </td>
                     <td>
                       <Link to={`/orders/${order.id}`} className="order-link">
                         {order.order_number}
@@ -348,6 +423,13 @@ const Orders = () => {
                       <Link to={`/orders/${order.id}/edit`} className="btn-icon" title="Edit">
                         ✏️
                       </Link>
+                      <button 
+                        className="btn-icon btn-delete" 
+                        title="Delete"
+                        onClick={() => handleDeleteSingle(order.id, order.order_number)}
+                      >
+                        🗑️
+                      </button>
                     </td>
                   </tr>
                 ))}

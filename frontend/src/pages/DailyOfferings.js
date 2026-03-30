@@ -160,6 +160,22 @@ const DailyOfferings = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!currentOffering) return;
+    if (!window.confirm(`Delete offering for ${selectedDate}?`)) return;
+    
+    try {
+      await api.delete(`/offerings/daily-offerings/${currentOffering.id}/`);
+      setCurrentOffering(null);
+      setSelectedProducts([]);
+      setNotes('');
+      fetchStats();
+      alert('Offering deleted');
+    } catch (err) {
+      alert('Failed to delete offering');
+    }
+  };
+
   const handleExportText = async () => {
     if (!currentOffering) {
       alert('Please save the offering first');
@@ -200,9 +216,14 @@ const DailyOfferings = () => {
           <p className="page-subtitle">Manage daily menu for customers</p>
         </div>
         {currentOffering && (
-          <button onClick={handleExportText} className="btn-primary">
-            📥 Export for WhatsApp/Email
-          </button>
+          <div className="header-actions">
+            <button onClick={handleExportText} className="btn-primary">
+              📥 Export for WhatsApp/Email
+            </button>
+            <button onClick={handleDelete} className="btn-danger">
+              🗑️ Delete
+            </button>
+          </div>
         )}
       </div>
 

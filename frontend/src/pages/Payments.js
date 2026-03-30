@@ -8,6 +8,9 @@ const Payments = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [filterMethod, setFilterMethod] = useState('');
+  const [selectedPayments, setSelectedPayments] = useState([]);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchPayments();
@@ -40,6 +43,43 @@ const Payments = () => {
 
   const formatCurrency = (amount) => `₹${parseFloat(amount || 0).toFixed(2)}`;
 
+  const handleSelectPayment = (id) => {
+    setSelectedPayments(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleSelectAll = () => {
+    setSelectedPayments(selectedPayments.length === payments.length ? [] : payments.map(p => p.id));
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedPayments.length === 0) return;
+    const msg = selectedPayments.length === 1 ? 'Delete this payment?' : `Delete ${selectedPayments.length} payments?`;
+    if (!window.confirm(msg)) return;
+    
+    setDeleting(true);
+    try {
+      await Promise.all(selectedPayments.map(id => api.delete(`/payments/payments/${id}/`)));
+      setSelectedPayments([]);
+      fetchPayments();
+      fetchStats();
+    } catch (err) {
+      setError('Failed to delete payments');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async (id) => {
+    if (!window.confirm('Delete this payment?')) return;
+    try {
+      await api.delete(`/payments/payments/${id}/`);
+      fetchPayments();
+      fetchStats();
+    } catch (err) {
+      setError('Failed to delete payment');
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading payments...</div>;
   }
@@ -47,9 +87,18 @@ const Payments = () => {
   return (
     <div className="payments-page">
       <div className="page-header">
-        <h1>💰 Payments</h1>
-        <p className="subtitle">All payment transactions</p>
+        <div>
+          <h1>💰 Payments</h1>
+          <p className="subtitle">All payment transactions</p>
+        </div>
+        {selectedPayments.length > 0 && (
+          <button onClick={handleDeleteSelected} className="btn-danger" disabled={deleting}>
+            🗑️ Delete ({selectedPayments.length})
+          </button>
+        )}
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <div className="stats-cards">
         <div className="stat-card">
@@ -118,16 +167,23 @@ const Payments = () => {
           <table className="payments-table">
             <thead>
               <tr>
+                <th className="checkbox-col">
+                  <input type="checkbox" checked={selectedPayments.length === payments.length && payments.length > 0} onChange={handleSelectAll} />
+                </th>
                 <th>Date</th>
                 <th>Order</th>
                 <th>Amount</th>
                 <th>Method</th>
                 <th>Reference</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {payments.map((payment) => (
-                <tr key={payment.id}>
+                <tr key={payment.id} className={selectedPayments.includes(payment.id) ? 'selected' : ''}>
+                  <td className="checkbox-col">
+                    <input type="checkbox" checked={selectedPayments.includes(payment.id)} onChange={() => handleSelectPayment(payment.id)} />
+                  </td>
                   <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
                   <td>
                     <Link to={`/orders/${payment.order}`} className="order-link">
@@ -141,6 +197,9 @@ const Payments = () => {
                     </span>
                   </td>
                   <td>{payment.reference || '-'}</td>
+                  <td>
+                    <button onClick={() => handleDeleteSingle(payment.id)} className="btn-icon btn-delete" title="Delete">🗑️</button>
+                  </td>
                 </tr>
               ))}
             </tbody>

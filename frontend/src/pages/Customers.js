@@ -14,6 +14,8 @@ const Customers = () => {
   const [apartments, setApartments] = useState([]);
   const [blocks, setBlocks] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchCustomers();
@@ -91,6 +93,51 @@ const Customers = () => {
     }
   };
 
+  const handleSelectCustomer = (id) => {
+    setSelectedCustomers(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedCustomers.length === customers.length) {
+      setSelectedCustomers([]);
+    } else {
+      setSelectedCustomers(customers.map(c => c.id));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedCustomers.length === 0) return;
+    const msg = selectedCustomers.length === 1 
+      ? 'Delete this customer?' 
+      : `Delete ${selectedCustomers.length} customers?`;
+    if (!window.confirm(msg)) return;
+    
+    setDeleting(true);
+    try {
+      await Promise.all(selectedCustomers.map(id => api.delete(`/customers/customers/${id}/`)));
+      setSelectedCustomers([]);
+      fetchCustomers();
+      fetchStats();
+    } catch (err) {
+      setError('Failed to delete. Customer may have orders.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteSingle = async (id, name) => {
+    if (!window.confirm(`Delete customer "${name}"?`)) return;
+    try {
+      await api.delete(`/customers/customers/${id}/`);
+      fetchCustomers();
+      fetchStats();
+    } catch (err) {
+      setError('Failed to delete. Customer may have orders.');
+    }
+  };
+
   return (
     <div className="customers-page">
       <div className="page-header">
@@ -98,9 +145,16 @@ const Customers = () => {
           <h2>👥 Customers</h2>
           <p className="page-subtitle">Manage customer information and contacts</p>
         </div>
-        <Link to="/customers/new" className="btn-primary">
-          + Add Customer
-        </Link>
+        <div className="header-actions">
+          {selectedCustomers.length > 0 && (
+            <button onClick={handleDeleteSelected} className="btn-danger" disabled={deleting}>
+              🗑️ Delete ({selectedCustomers.length})
+            </button>
+          )}
+          <Link to="/customers/new" className="btn-primary">
+            + Add Customer
+          </Link>
+        </div>
       </div>
 
       <div className="stats-cards">
@@ -220,6 +274,9 @@ const Customers = () => {
             <table className="customers-table">
               <thead>
                 <tr>
+                  <th className="checkbox-col">
+                    <input type="checkbox" checked={selectedCustomers.length === customers.length && customers.length > 0} onChange={handleSelectAll} />
+                  </th>
                   <th>Name</th>
                   <th>Mobile</th>
                   <th className="hide-mobile">Email</th>
@@ -232,7 +289,10 @@ const Customers = () => {
               </thead>
               <tbody>
                 {customers.map((customer) => (
-                  <tr key={customer.id}>
+                  <tr key={customer.id} className={selectedCustomers.includes(customer.id) ? 'selected' : ''}>
+                    <td className="checkbox-col">
+                      <input type="checkbox" checked={selectedCustomers.includes(customer.id)} onChange={() => handleSelectCustomer(customer.id)} />
+                    </td>
                     <td>
                       <Link to={`/customers/${customer.id}`} className="customer-name">
                         {customer.name}
@@ -250,20 +310,11 @@ const Customers = () => {
                     <td className="hide-mobile">{new Date(customer.created_at).toLocaleDateString()}</td>
                     <td>
                       <div className="action-buttons">
-                        <Link 
-                          to={`/customers/${customer.id}/edit`}
-                          className="btn-icon"
-                          title="Edit"
-                        >
-                          ✏️
-                        </Link>
-                        <button
-                          onClick={() => toggleActive(customer.id)}
-                          className="btn-icon"
-                          title={customer.is_active ? 'Deactivate' : 'Activate'}
-                        >
+                        <Link to={`/customers/${customer.id}/edit`} className="btn-icon" title="Edit">✏️</Link>
+                        <button onClick={() => toggleActive(customer.id)} className="btn-icon" title={customer.is_active ? 'Deactivate' : 'Activate'}>
                           {customer.is_active ? '🔒' : '🔓'}
                         </button>
+                        <button onClick={() => handleDeleteSingle(customer.id, customer.name)} className="btn-icon btn-delete" title="Delete">🗑️</button>
                       </div>
                     </td>
                   </tr>

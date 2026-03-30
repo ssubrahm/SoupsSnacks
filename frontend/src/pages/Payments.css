@@ -180,6 +180,17 @@
   color: #616161;
 }
 
+.checkbox-col { width: 40px; text-align: center; }
+.checkbox-col input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+.payments-table tr.selected { background: rgba(212, 175, 55, 0.1); }
+.btn-danger { background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500; }
+.btn-danger:hover { background: #c82333; }
+.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.25rem; }
+.btn-delete { color: #dc3545; }
+.error-message { background: #ffebee; color: #c62828; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+.page-header { display: flex; justify-content: space-between; align-items: center; }
+
 .empty-state {
   text-align: center;
   padding: 3rem;
