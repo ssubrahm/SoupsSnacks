@@ -55,15 +55,22 @@
 }
 
 .kpi-value {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.2;
-  word-break: break-word;
-  overflow-wrap: break-word;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (min-width: 1200px) {
+  .kpi-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1600px) {
   .kpi-value {
     font-size: 1.75rem;
   }
