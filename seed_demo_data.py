@@ -280,7 +280,6 @@ def create_customers(count=30):
                 'email': f"{first.lower()}.{last.lower()}@email.com" if random.random() > 0.3 else '',
                 'apartment_name': apartment,
                 'block': block,
-                'flat_number': flat,
                 'address': f"Flat {flat}, {block} Block, {apartment}, Bangalore",
                 'is_active': random.random() > 0.1,
             }

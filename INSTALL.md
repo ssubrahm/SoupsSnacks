@@ -1,5 +1,31 @@
 # Installation Guide
 
+## Quick Install (Windows)
+
+1. **Extract the zip file** to a folder
+
+2. **Open Command Prompt** in that folder
+
+3. **Run the installer:**
+   ```cmd
+   install.bat
+   ```
+
+4. **Seed demo data (optional):**
+   ```cmd
+   SSCo\Scripts\activate
+   python seed_demo_data.py
+   ```
+
+5. **Start the app:**
+   ```cmd
+   setup.bat
+   ```
+
+6. **Open in browser:** http://localhost:3000
+
+---
+
 ## Quick Install (Mac/Linux)
 
 1. **Extract the zip file:**
