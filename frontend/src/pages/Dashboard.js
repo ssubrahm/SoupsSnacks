@@ -78,7 +78,7 @@ const Dashboard = () => {
         <div className="kpi-card sales">
           <div className="kpi-icon">💰</div>
           <div className="kpi-content">
-            <div className="kpi-value">{formatCurrency(data?.sales_today)}</div>
+            <div className="kpi-value" title={formatCurrency(data?.sales_today)}>{formatCurrency(data?.sales_today)}</div>
             <div className="kpi-label">Sales Today</div>
           </div>
         </div>
@@ -86,7 +86,7 @@ const Dashboard = () => {
         <div className="kpi-card month">
           <div className="kpi-icon">📈</div>
           <div className="kpi-content">
-            <div className="kpi-value">{formatCurrency(data?.sales_month)}</div>
+            <div className="kpi-value" title={formatCurrency(data?.sales_month)}>{formatCurrency(data?.sales_month)}</div>
             <div className="kpi-label">Sales This Month</div>
           </div>
         </div>
@@ -94,7 +94,7 @@ const Dashboard = () => {
         <div className="kpi-card profit">
           <div className="kpi-icon">🎯</div>
           <div className="kpi-content">
-            <div className="kpi-value">{formatCurrency(data?.profit_month)}</div>
+            <div className="kpi-value" title={formatCurrency(data?.profit_month)}>{formatCurrency(data?.profit_month)}</div>
             <div className="kpi-label">Profit This Month</div>
           </div>
         </div>
@@ -102,7 +102,7 @@ const Dashboard = () => {
         <div className="kpi-card unpaid">
           <div className="kpi-icon">⚠️</div>
           <div className="kpi-content">
-            <div className="kpi-value">{formatCurrency(data?.unpaid_amount)}</div>
+            <div className="kpi-value" title={formatCurrency(data?.unpaid_amount)}>{formatCurrency(data?.unpaid_amount)}</div>
             <div className="kpi-label">Unpaid Amount</div>
           </div>
         </div>
