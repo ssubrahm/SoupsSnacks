@@ -6,38 +6,19 @@
 /* KPI Grid */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
   margin-bottom: 2rem;
-}
-
-@media (max-width: 1400px) {
-  .kpi-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 500px) {
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .kpi-card {
   background: var(--bg-secondary);
   border-radius: 16px;
-  padding: 1.25rem;
+  padding: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   transition: transform 0.2s, box-shadow 0.2s;
-  min-width: 0;
 }
 
 .kpi-card:hover {
@@ -55,25 +36,10 @@
 }
 
 .kpi-value {
-  font-size: 1.35rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-@media (min-width: 1200px) {
-  .kpi-value {
-    font-size: 1.5rem;
-  }
-}
-
-@media (min-width: 1600px) {
-  .kpi-value {
-    font-size: 1.75rem;
-  }
+  line-height: 1.2;
 }
 
 .kpi-label {
@@ -82,35 +48,29 @@
   margin-top: 0.25rem;
 }
 
-/* KPI Card Colors - Warm Orange Theme */
+/* KPI Card Colors */
 .kpi-card.today {
-  border-left: 4px solid #E67E22;
-  background: linear-gradient(135deg, rgba(230, 126, 34, 0.08), transparent);
+  border-left: 4px solid #3498DB;
 }
 
 .kpi-card.pending {
-  border-left: 4px solid #D4AF37;
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), transparent);
+  border-left: 4px solid #F39C12;
 }
 
 .kpi-card.sales {
   border-left: 4px solid #27AE60;
-  background: linear-gradient(135deg, rgba(39, 174, 96, 0.08), transparent);
 }
 
 .kpi-card.month {
-  border-left: 4px solid #E8B84D;
-  background: linear-gradient(135deg, rgba(232, 184, 77, 0.08), transparent);
+  border-left: 4px solid var(--primary-color);
 }
 
 .kpi-card.profit {
-  border-left: 4px solid #C65D3B;
-  background: linear-gradient(135deg, rgba(198, 93, 59, 0.08), transparent);
+  border-left: 4px solid #9B59B6;
 }
 
 .kpi-card.unpaid {
   border-left: 4px solid #E74C3C;
-  background: linear-gradient(135deg, rgba(231, 76, 60, 0.08), transparent);
 }
 
 /* Dashboard Grid */

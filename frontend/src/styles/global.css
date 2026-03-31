@@ -10,11 +10,6 @@
   margin-bottom: 1.5rem;
   gap: 1rem;
   flex-wrap: wrap;
-  background: linear-gradient(135deg, #D4AF37 0%, #E8B84D 50%, #F4D03F 100%);
-  padding: 1.5rem 2rem;
-  border-radius: 12px;
-  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .page-header h1,
@@ -22,15 +17,13 @@
   margin: 0;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #3E2723;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
 }
 
 .page-subtitle {
-  color: rgba(62, 39, 35, 0.85);
+  color: var(--text-secondary);
   font-size: 0.875rem;
   margin-top: 0.25rem;
-  font-weight: 500;
 }
 
 .header-actions {

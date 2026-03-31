@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { formatCurrency } from '../utils/formatters';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -27,8 +26,7 @@ const Dashboard = () => {
     }
   };
 
-  // Use compact format for large numbers
-  const formatDashboardCurrency = (amount) => formatCurrency(amount, true);
+  const formatCurrency = (amount) => `₹${parseFloat(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   if (loading) {
     return (
@@ -80,7 +78,7 @@ const Dashboard = () => {
         <div className="kpi-card sales">
           <div className="kpi-icon">💰</div>
           <div className="kpi-content">
-            <div className="kpi-value">{formatDashboardCurrency(data?.sales_today)}</div>
+            <div className="kpi-value">{formatCurrency(data?.sales_today)}</div>
             <div className="kpi-label">Sales Today</div>
           </div>
         </div>
@@ -88,7 +86,7 @@ const Dashboard = () => {
         <div className="kpi-card month">
           <div className="kpi-icon">📈</div>
           <div className="kpi-content">
-            <div className="kpi-value">{formatDashboardCurrency(data?.sales_month)}</div>
+            <div className="kpi-value">{formatCurrency(data?.sales_month)}</div>
             <div className="kpi-label">Sales This Month</div>
           </div>
         </div>
@@ -96,7 +94,7 @@ const Dashboard = () => {
         <div className="kpi-card profit">
           <div className="kpi-icon">🎯</div>
           <div className="kpi-content">
-            <div className="kpi-value">{formatDashboardCurrency(data?.profit_month)}</div>
+            <div className="kpi-value">{formatCurrency(data?.profit_month)}</div>
             <div className="kpi-label">Profit This Month</div>
           </div>
         </div>
@@ -104,7 +102,7 @@ const Dashboard = () => {
         <div className="kpi-card unpaid">
           <div className="kpi-icon">⚠️</div>
           <div className="kpi-content">
-            <div className="kpi-value">{formatDashboardCurrency(data?.unpaid_amount)}</div>
+            <div className="kpi-value">{formatCurrency(data?.unpaid_amount)}</div>
             <div className="kpi-label">Unpaid Amount</div>
           </div>
         </div>
