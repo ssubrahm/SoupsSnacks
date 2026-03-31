@@ -17,7 +17,7 @@ class Payment(models.Model):
     
     order = models.ForeignKey(
         Order,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='payments'
     )
     payment_date = models.DateField(
