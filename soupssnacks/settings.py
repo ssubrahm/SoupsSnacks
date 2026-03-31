@@ -170,12 +170,10 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Session settings for proper cookie handling
-SESSION_COOKIE_SAMESITE = None  # Required for cross-origin
+SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
-CSRF_COOKIE_SAMESITE = None  # Required for cross-origin
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False  # Frontend needs to read this
-CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
