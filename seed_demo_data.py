@@ -65,6 +65,7 @@ LAST_NAMES = [
 ]
 
 # Products with cost breakdown
+# Format: (item_type, item_name, quantity, unit_of_measure, cost_per_unit)
 PRODUCTS = [
     {
         'name': 'Tomato Rasam',
@@ -72,10 +73,10 @@ PRODUCTS = [
         'unit': '500ml',
         'selling_price': 120,
         'costs': [
-            ('ingredient', 'Tomatoes & spices', 35),
-            ('ingredient', 'Tamarind & herbs', 15),
-            ('packaging', 'Container & lid', 8),
-            ('labor', 'Preparation', 20),
+            ('ingredient', 'Tomatoes', 0.2, 'kg', 60),
+            ('ingredient', 'Spices & Tamarind', 1, 'portion', 25),
+            ('packaging', 'Container & lid', 1, 'pc', 8),
+            ('labor', 'Preparation', 0.25, 'hour', 80),
         ]
     },
     {
@@ -84,10 +85,10 @@ PRODUCTS = [
         'unit': '500ml',
         'selling_price': 150,
         'costs': [
-            ('ingredient', 'Lentils & vegetables', 40),
-            ('ingredient', 'Spices & coconut', 20),
-            ('packaging', 'Container & lid', 8),
-            ('labor', 'Preparation', 25),
+            ('ingredient', 'Lentils & vegetables', 0.15, 'kg', 120),
+            ('ingredient', 'Spices & coconut', 1, 'portion', 30),
+            ('packaging', 'Container & lid', 1, 'pc', 8),
+            ('labor', 'Preparation', 0.3, 'hour', 80),
         ]
     },
     {
@@ -96,10 +97,10 @@ PRODUCTS = [
         'unit': '6 pcs',
         'selling_price': 80,
         'costs': [
-            ('ingredient', 'Chana dal & spices', 25),
-            ('ingredient', 'Onions & herbs', 10),
-            ('packaging', 'Box', 5),
-            ('labor', 'Preparation & frying', 15),
+            ('ingredient', 'Chana dal', 0.1, 'kg', 150),
+            ('ingredient', 'Onions & spices', 1, 'portion', 20),
+            ('packaging', 'Box', 1, 'pc', 5),
+            ('labor', 'Preparation & frying', 0.2, 'hour', 75),
         ]
     },
     {
@@ -108,10 +109,10 @@ PRODUCTS = [
         'unit': '4 pcs',
         'selling_price': 60,
         'costs': [
-            ('ingredient', 'Potatoes & peas', 15),
-            ('ingredient', 'Flour & spices', 10),
-            ('packaging', 'Box', 5),
-            ('labor', 'Preparation & frying', 12),
+            ('ingredient', 'Potatoes & peas', 0.15, 'kg', 60),
+            ('ingredient', 'Flour & spices', 0.05, 'kg', 80),
+            ('packaging', 'Box', 1, 'pc', 5),
+            ('labor', 'Preparation & frying', 0.15, 'hour', 80),
         ]
     },
     {
@@ -120,10 +121,11 @@ PRODUCTS = [
         'unit': '250g',
         'selling_price': 200,
         'costs': [
-            ('ingredient', 'Besan & ghee', 70),
-            ('ingredient', 'Sugar & cardamom', 30),
-            ('packaging', 'Gift box', 15),
-            ('labor', 'Preparation', 25),
+            ('ingredient', 'Besan', 0.1, 'kg', 200),
+            ('ingredient', 'Ghee', 0.15, 'kg', 400),
+            ('ingredient', 'Sugar & cardamom', 0.08, 'kg', 80),
+            ('packaging', 'Gift box', 1, 'pc', 15),
+            ('labor', 'Preparation', 0.3, 'hour', 80),
         ]
     },
     {
@@ -132,10 +134,11 @@ PRODUCTS = [
         'unit': '8 pcs',
         'selling_price': 180,
         'costs': [
-            ('ingredient', 'Khoya & flour', 50),
-            ('ingredient', 'Sugar syrup', 25),
-            ('packaging', 'Container', 10),
-            ('labor', 'Preparation', 30),
+            ('ingredient', 'Khoya', 0.1, 'kg', 400),
+            ('ingredient', 'Flour & cardamom', 0.05, 'kg', 100),
+            ('ingredient', 'Sugar syrup', 0.15, 'kg', 80),
+            ('packaging', 'Container', 1, 'pc', 10),
+            ('labor', 'Preparation', 0.35, 'hour', 80),
         ]
     },
     {
@@ -144,11 +147,11 @@ PRODUCTS = [
         'unit': '1 plate',
         'selling_price': 180,
         'costs': [
-            ('ingredient', 'Rice & dal', 30),
-            ('ingredient', 'Vegetables & curry', 40),
-            ('ingredient', 'Roti & sides', 25),
-            ('packaging', 'Thali container', 15),
-            ('labor', 'Preparation', 30),
+            ('ingredient', 'Rice', 0.15, 'kg', 80),
+            ('ingredient', 'Dal & vegetables', 0.2, 'kg', 120),
+            ('ingredient', 'Roti & sides', 1, 'portion', 30),
+            ('packaging', 'Thali container', 1, 'pc', 15),
+            ('labor', 'Preparation', 0.4, 'hour', 75),
         ]
     },
     {
@@ -157,11 +160,11 @@ PRODUCTS = [
         'unit': '1 portion',
         'selling_price': 220,
         'costs': [
-            ('ingredient', 'Basmati rice', 30),
-            ('ingredient', 'Vegetables & spices', 45),
-            ('ingredient', 'Saffron & dry fruits', 25),
-            ('packaging', 'Container', 12),
-            ('labor', 'Preparation', 40),
+            ('ingredient', 'Basmati rice', 0.15, 'kg', 180),
+            ('ingredient', 'Vegetables & spices', 0.15, 'kg', 150),
+            ('ingredient', 'Saffron & dry fruits', 1, 'portion', 30),
+            ('packaging', 'Container', 1, 'pc', 12),
+            ('labor', 'Preparation', 0.5, 'hour', 80),
         ]
     },
     {
@@ -170,10 +173,10 @@ PRODUCTS = [
         'unit': '500g',
         'selling_price': 350,
         'costs': [
-            ('ingredient', 'Tender mangoes', 100),
-            ('ingredient', 'Spices & oil', 60),
-            ('packaging', 'Glass jar', 25),
-            ('labor', 'Preparation', 40),
+            ('ingredient', 'Tender mangoes', 0.4, 'kg', 250),
+            ('ingredient', 'Spices & oil', 0.15, 'kg', 400),
+            ('packaging', 'Glass jar', 1, 'pc', 25),
+            ('labor', 'Preparation', 0.5, 'hour', 80),
         ]
     },
     {
@@ -182,10 +185,10 @@ PRODUCTS = [
         'unit': '1 KG',
         'selling_price': 650,
         'costs': [
-            ('ingredient', 'Tender mangoes', 200),
-            ('ingredient', 'Spices & oil', 100),
-            ('packaging', 'Glass jar', 35),
-            ('labor', 'Preparation', 60),
+            ('ingredient', 'Tender mangoes', 0.8, 'kg', 250),
+            ('ingredient', 'Spices & oil', 0.25, 'kg', 400),
+            ('packaging', 'Glass jar', 1, 'pc', 35),
+            ('labor', 'Preparation', 0.75, 'hour', 80),
         ]
     },
     {
@@ -194,10 +197,10 @@ PRODUCTS = [
         'unit': '250g',
         'selling_price': 180,
         'costs': [
-            ('ingredient', 'Lemons', 40),
-            ('ingredient', 'Spices & oil', 35),
-            ('packaging', 'Glass jar', 15),
-            ('labor', 'Preparation', 25),
+            ('ingredient', 'Lemons', 0.2, 'kg', 100),
+            ('ingredient', 'Spices & oil', 0.08, 'kg', 400),
+            ('packaging', 'Glass jar', 1, 'pc', 15),
+            ('labor', 'Preparation', 0.3, 'hour', 80),
         ]
     },
     {
@@ -206,10 +209,10 @@ PRODUCTS = [
         'unit': '1 combo',
         'selling_price': 150,
         'costs': [
-            ('ingredient', 'Mixed snacks', 50),
-            ('ingredient', 'Chutneys', 15),
-            ('packaging', 'Combo box', 12),
-            ('labor', 'Assembly', 20),
+            ('ingredient', 'Mixed snacks', 1, 'portion', 50),
+            ('ingredient', 'Chutneys', 1, 'portion', 15),
+            ('packaging', 'Combo box', 1, 'pc', 12),
+            ('labor', 'Assembly', 0.25, 'hour', 80),
         ]
     },
 ]
@@ -311,12 +314,14 @@ def create_products():
         
         if created:
             # Add cost components
-            for cost_type, description, amount in data['costs']:
+            for item_type, item_name, quantity, unit_of_measure, cost_per_unit in data['costs']:
                 ProductCostComponent.objects.create(
                     product=product,
-                    cost_type=cost_type,
-                    description=description,
-                    amount=Decimal(str(amount))
+                    item_type=item_type,
+                    item_name=item_name,
+                    quantity=Decimal(str(quantity)),
+                    unit_of_measure=unit_of_measure,
+                    cost_per_unit=Decimal(str(cost_per_unit))
                 )
             products.append(product)
             print(f"  Created: {data['name']} (₹{data['selling_price']})")
