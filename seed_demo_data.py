@@ -422,7 +422,7 @@ def create_offerings(products):
             
             for idx, product in enumerate(selected):
                 DailyOfferingItem.objects.create(
-                    offering=offering,
+                    daily_offering=offering,
                     product=product,
                     available_quantity=random.choice([None, None, 10, 15, 20, 25]),
                     display_order=idx
