@@ -36,21 +36,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <Assistant />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Layout>
                   <Dashboard />
                 </Layout>
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/ask-jeeves"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Assistant />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/dashboard" element={<Navigate to="/" replace />} />
           <Route
             path="/customers"
             element={

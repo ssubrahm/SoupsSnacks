@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../services/api';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import JeevesIcon from '../components/JeevesIcon';
 import { renderAssistantData } from '../components/assistant/AssistantResults';
+import '../components/JeevesIcon.css';
 import '../components/assistant/AssistantResults.css';
 import './Assistant.css';
 
@@ -256,9 +258,12 @@ const Assistant = () => {
     <div className="assistant-page">
       <div className="assistant-header">
         <div>
-          <h2>Ask SoupsSnacks</h2>
+          <div className="assistant-title-row">
+            <h2>Ask Jeeves</h2>
+            <JeevesIcon size={44} title="At your service — ask about orders, customers, and menu" />
+          </div>
           <p className="assistant-subtitle">
-            Natural language answers about orders, customers, and your menu
+            Your business valet — plain English answers about orders, customers, and your menu
             {llmEnabled && <span className="ai-badge">AI enhanced</span>}
             {voiceEnabled && supported && <span className="ai-badge voice-badge">Voice</span>}
           </p>
@@ -299,7 +304,9 @@ const Assistant = () => {
           <div className="chat-messages">
             {messages.map((msg) => (
               <div key={msg.id} className={`chat-message ${msg.role}`}>
-                <div className="message-avatar">{msg.role === 'user' ? 'You' : 'SS'}</div>
+                <div className="message-avatar jeeves-avatar">
+                  {msg.role === 'user' ? 'You' : <JeevesIcon size={28} />}
+                </div>
                 <div className="message-body">
                   <div
                     className="message-text"
@@ -328,7 +335,9 @@ const Assistant = () => {
 
             {loading && (
               <div className="chat-message assistant">
-                <div className="message-avatar">SS</div>
+                <div className="message-avatar jeeves-avatar">
+                  <JeevesIcon size={28} />
+                </div>
                 <div className="message-body">
                   <div className="typing-indicator">
                     <span /><span /><span />

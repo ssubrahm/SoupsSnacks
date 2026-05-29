@@ -1,0 +1,49 @@
+.jeeves-icon {
+  flex-shrink: 0;
+  vertical-align: middle;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+  border-radius: 50%;
+}
+
+.nav-jeeves-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-jeeves-link .jeeves-icon {
+  transition: transform 0.15s ease;
+}
+
+.sidebar a.nav-jeeves-link:hover .jeeves-icon,
+.sidebar a.nav-jeeves-link.active .jeeves-icon {
+  transform: scale(1.12);
+}
+
+.jeeves-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8B84D;
+  border: 2px solid #B8941F;
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.assistant-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.assistant-title-row h2 {
+  margin: 0;
+}
+
+.assistant-title-row .jeeves-icon {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}

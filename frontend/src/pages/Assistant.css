@@ -204,10 +204,12 @@
   color: var(--text-primary);
 }
 
-.chat-message.assistant .message-avatar {
-  background: var(--bg-accent);
-  color: var(--primary-dark);
-  border: 1px solid var(--border-color);
+.chat-message.assistant .message-avatar.jeeves-avatar {
+  background: #E8B84D;
+  border: 2px solid #B8941F;
+  padding: 0;
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .message-body {

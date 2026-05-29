@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Logo from './Logo';
+import JeevesIcon from './JeevesIcon';
 import './Layout.css';
+import './JeevesIcon.css';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
@@ -98,9 +100,13 @@ const Layout = ({ children }) => {
         )}
         <nav className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
           <ul>
-            <li><Link to="/">💬 Ask</Link></li>
-            <li><Link to="/dashboard">📊 Dashboard</Link></li>
-            
+            <li><Link to="/">📊 Dashboard</Link></li>
+            <li>
+              <Link to="/ask-jeeves" className="nav-jeeves-link">
+                Ask Jeeves
+                <JeevesIcon size={30} title="Jeeves — at your service" />
+              </Link>
+            </li>
             {(user?.role === 'admin' || user?.role === 'operator') && (
               <>
                 <li><Link to="/customers">👥 Customers</Link></li>
