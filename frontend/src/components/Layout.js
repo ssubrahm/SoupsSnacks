@@ -98,7 +98,8 @@ const Layout = ({ children }) => {
         )}
         <nav className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
           <ul>
-            <li><Link to="/">📊 Dashboard</Link></li>
+            <li><Link to="/">💬 Ask</Link></li>
+            <li><Link to="/dashboard">📊 Dashboard</Link></li>
             
             {(user?.role === 'admin' || user?.role === 'operator') && (
               <>

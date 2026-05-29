@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "reports",
     "imports",
     "integrations",
+    "assistant",
 ]
 
 MIDDLEWARE = [
@@ -177,3 +178,8 @@ CSRF_COOKIE_HTTPONLY = False  # Frontend needs to read this
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
+
+# AI Assistant (optional — rule-based fallback works without a key)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")

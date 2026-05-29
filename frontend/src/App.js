@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import Assistant from './pages/Assistant';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Customers from './pages/Customers';
@@ -32,6 +33,16 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route
             path="/"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Assistant />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <Layout>
