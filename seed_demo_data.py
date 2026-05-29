@@ -168,7 +168,7 @@ PRODUCTS = [
         ]
     },
     {
-        'name': 'Tender Mango Pickle 500g',
+        'name': 'Tender Mango Pickle',
         'category': 'pickle',
         'unit': '500g',
         'selling_price': 350,
@@ -180,9 +180,9 @@ PRODUCTS = [
         ]
     },
     {
-        'name': 'Tender Mango Pickle 1 KG',
+        'name': 'Tender Mango Pickle',
         'category': 'pickle',
-        'unit': '1 KG',
+        'unit': '1Kg',
         'selling_price': 650,
         'costs': [
             ('ingredient', 'Tender mangoes', 0.8, 'kg', 250),
@@ -422,7 +422,8 @@ def create_offerings(products):
             
             for idx, product in enumerate(selected):
                 DailyOfferingItem.objects.create(
-                    offering=offering,
+                    #offering=offering,
+                    daily_offering=offering,
                     product=product,
                     available_quantity=random.choice([None, None, 10, 15, 20, 25]),
                     display_order=idx

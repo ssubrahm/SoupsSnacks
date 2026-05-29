@@ -58,15 +58,33 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Filter by date range
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
+        date_field = self.request.query_params.get('date_field', 'order_date')
+        if date_field not in ('order_date', 'fulfillment_date'):
+            date_field = 'order_date'
         if start_date:
-            queryset = queryset.filter(order_date__gte=start_date)
+            queryset = queryset.filter(**{f'{date_field}__gte': start_date})
         if end_date:
-            queryset = queryset.filter(order_date__lte=end_date)
+            queryset = queryset.filter(**{f'{date_field}__lte': end_date})
         
-        # Filter by fulfillment date
+        # Filter by fulfillment date (exact day)
         fulfillment_date = self.request.query_params.get('fulfillment_date')
         if fulfillment_date:
             queryset = queryset.filter(fulfillment_date=fulfillment_date)
+
+        # Filter by product (orders containing matching line items)
+        product_id = self.request.query_params.get('product')
+        if product_id:
+            queryset = queryset.filter(items__product_id=product_id).distinct()
+
+        product_search = self.request.query_params.get('product_search')
+        if product_search:
+            terms = [t for t in product_search.split() if t]
+            for term in terms:
+                queryset = queryset.filter(
+                    Q(items__product__name__icontains=term) |
+                    Q(items__product__unit__icontains=term)
+                )
+            queryset = queryset.distinct()
         
         # Search by order number or customer name
         search = self.request.query_params.get('search')

@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SoupsSnacks v2 full-stack architecture and learning reference">
+  <title>SoupsSnacks v2 — Full-Stack Reference</title>
+  <style>
+/* SoupsSnacks Reference — standalone documentation theme */
+
+:root {
+  --bg: #faf8f5;
+  --bg-sidebar: #fff9f0;
+  --bg-code: #f4f0ea;
+  --text: #2c2416;
+  --text-muted: #6b5d4d;
+  --primary: #c45c26;
+  --primary-dark: #9a4520;
+  --accent: #d4a017;
+  --border: #e8dfd0;
+  --link: #b45309;
+  --link-hover: #92400e;
+  --table-stripe: #fdf6ec;
+  --shadow: 0 2px 12px rgba(44, 36, 22, 0.08);
+  --radius: 8px;
+  --font-sans: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
+  --sidebar-width: 280px;
+  --content-max: 920px;
+}
+
+[data-theme="dark"] {
+  --bg: #1a1612;
+  --bg-sidebar: #221c16;
+  --bg-code: #2a231c;
+  --text: #f5efe6;
+  --text-muted: #b8a894;
+  --primary: #e07a3a;
+  --primary-dark: #c45c26;
+  --accent: #e8b84a;
+  --border: #3d3428;
+  --link: #f0a050;
+  --link-hover: #ffb366;
+  --table-stripe: #241e18;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ── Layout shell ── */
+.doc-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.doc-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 1.25rem 1rem 2rem;
+  z-index: 100;
+}
+
+.doc-sidebar-header {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--primary);
+}
+
+.doc-sidebar-header h1 {
+  font-size: 1.05rem;
+  margin: 0 0 0.25rem;
+  color: var(--primary-dark);
+  line-height: 1.3;
+}
+
+.doc-sidebar-header .subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.doc-main {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  padding: 2rem 2.5rem 4rem;
+  max-width: calc(var(--content-max) + var(--sidebar-width) + 5rem);
+}
+
+.doc-content {
+  max-width: var(--content-max);
+}
+
+/* ── Sidebar TOC (pandoc #TOC) ── */
+#TOC {
+  font-size: 0.82rem;
+}
+
+#TOC > ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+#TOC ul ul {
+  padding-left: 1rem;
+  margin-top: 0.15rem;
+}
+
+#TOC li {
+  margin: 0.2rem 0;
+}
+
+#TOC a {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: block;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#TOC a:hover {
+  color: var(--link-hover);
+  background: rgba(196, 92, 38, 0.08);
+}
+
+#TOC > ul > li > a {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Top bar (mobile + theme toggle) ── */
+.doc-topbar {
+  display: none;
+  position: sticky;
+  top: 0;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  z-index: 200;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.doc-topbar-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--primary-dark);
+}
+
+.doc-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.btn-icon:hover {
+  background: rgba(196, 92, 38, 0.1);
+  border-color: var(--primary);
+}
+
+/* ── Typography ── */
+.doc-content h1 {
+  font-size: 2rem;
+  color: var(--primary-dark);
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.doc-content h2 {
+  font-size: 1.45rem;
+  color: var(--primary-dark);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 1.5rem;
+}
+
+.doc-content h3 {
+  font-size: 1.15rem;
+  color: var(--text);
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 1.5rem;
+}
+
+.doc-content h4 {
+  font-size: 1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.doc-content p {
+  margin: 0.75rem 0;
+}
+
+.doc-content strong {
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.doc-content a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.doc-content a:hover {
+  color: var(--link-hover);
+}
+
+.doc-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* ── Meta block at top ── */
+.doc-meta {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  font-size: 0.92rem;
+}
+
+.doc-meta p {
+  margin: 0.25rem 0;
+}
+
+/* ── Lists ── */
+.doc-content ul,
+.doc-content ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.doc-content li {
+  margin: 0.35rem 0;
+}
+
+.doc-content li > ul,
+.doc-content li > ol {
+  margin: 0.25rem 0;
+}
+
+/* Task lists */
+.doc-content input[type="checkbox"] {
+  margin-right: 0.4rem;
+  accent-color: var(--primary);
+}
+
+/* ── Tables ── */
+.doc-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.92rem;
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.doc-content thead {
+  background: var(--primary);
+  color: #fff;
+}
+
+.doc-content th {
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+.doc-content td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-content tbody tr:nth-child(even) {
+  background: var(--table-stripe);
+}
+
+.doc-content tbody tr:hover {
+  background: rgba(196, 92, 38, 0.06);
+}
+
+/* ── Code ── */
+.doc-content code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--bg-code);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: var(--primary-dark);
+}
+
+.doc-content pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  box-shadow: var(--shadow);
+}
+
+.doc-content pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+  font-size: inherit;
+}
+
+/* Pandoc syntax highlighting */
+.doc-content pre.sourceCode {
+  background: #2d2a24;
+  border-color: #3d3a32;
+}
+
+.doc-content pre.sourceCode code {
+  color: #f5efe6;
+}
+
+/* ASCII diagrams in plain pre */
+.doc-content pre:not(.sourceCode) {
+  font-family: var(--font-mono);
+  white-space: pre;
+  color: var(--text);
+}
+
+/* ── Blockquotes ── */
+.doc-content blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 4px solid var(--accent);
+  background: var(--bg-sidebar);
+  color: var(--text-muted);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* ── Back to top ── */
+.back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 300;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.back-to-top:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* ── Footer ── */
+.doc-footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Print ── */
+@media print {
+  .doc-sidebar,
+  .doc-topbar,
+  .back-to-top,
+  .doc-controls {
+    display: none !important;
+  }
+
+  .doc-main {
+    margin-left: 0;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .doc-content h2 {
+    page-break-after: avoid;
+  }
+
+  .doc-content pre,
+  .doc-content table {
+    page-break-inside: avoid;
+  }
+}
+
+/* ── Mobile ── */
+@media (max-width: 900px) {
+  .doc-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: var(--shadow);
+  }
+
+  .doc-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .doc-main {
+    margin-left: 0;
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  .doc-topbar {
+    display: flex;
+  }
+
+  .doc-content h1 {
+    font-size: 1.55rem;
+  }
+
+  .doc-content table {
+    font-size: 0.82rem;
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="doc-topbar">
+    <span class="doc-topbar-title">SoupsSnacks v2 Reference</span>
+    <div class="doc-controls">
+      <button class="btn-icon" id="toggle-nav" aria-label="Toggle navigation">Menu</button>
+      <button class="btn-icon" id="toggle-theme" aria-label="Toggle dark mode">Theme</button>
+    </div>
+  </div>
+  <div class="doc-shell">
+    <aside class="doc-sidebar" id="sidebar">
+      <div class="doc-sidebar-header">
+        <h1>SoupsSnacks v2</h1>
+        <p class="subtitle">Full-Stack Reference &amp; Learning Guide</p>
+      </div>
+      <nav id="sidebar-toc" aria-label="Table of contents"></nav>
+    </aside>
+    <main class="doc-main">
+      <article class="doc-content" id="content">
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#soupssnacks-v2-full-stack-reference-learning-guide"
+id="toc-soupssnacks-v2-full-stack-reference-learning-guide">SoupsSnacks
+v2 — Full-Stack Reference &amp; Learning Guide</a>
+<ul>
+<li><a href="#executive-summary" id="toc-executive-summary">1. Executive
+Summary</a></li>
+<li><a href="#business-domain-features"
+id="toc-business-domain-features">2. Business Domain &amp; Features</a>
+<ul>
+<li><a href="#what-the-business-does"
+id="toc-what-the-business-does">What the business does</a></li>
+<li><a href="#core-workflows" id="toc-core-workflows">Core
+workflows</a></li>
+<li><a href="#user-roles" id="toc-user-roles">User roles</a></li>
+</ul></li>
+<li><a href="#architecture-overview" id="toc-architecture-overview">3.
+Architecture Overview</a>
+<ul>
+<li><a href="#high-level-diagram" id="toc-high-level-diagram">High-level
+diagram</a></li>
+<li><a href="#architectural-choices-why-they-matter"
+id="toc-architectural-choices-why-they-matter">Architectural choices
+(why they matter)</a></li>
+<li><a href="#request-lifecycle-example-create-order"
+id="toc-request-lifecycle-example-create-order">Request lifecycle
+(example: create order)</a></li>
+</ul></li>
+<li><a href="#technology-stack" id="toc-technology-stack">4. Technology
+Stack</a>
+<ul>
+<li><a href="#backend-pinned-in-requirements.txt"
+id="toc-backend-pinned-in-requirements.txt">Backend (pinned in
+requirements.txt)</a></li>
+<li><a href="#backend-optional-used-in-code"
+id="toc-backend-optional-used-in-code">Backend (optional, used in
+code)</a></li>
+<li><a href="#frontend-package.json"
+id="toc-frontend-package.json">Frontend (package.json)</a></li>
+<li><a href="#what-is-not-used" id="toc-what-is-not-used">What is NOT
+used</a></li>
+</ul></li>
+<li><a href="#repository-layout" id="toc-repository-layout">5.
+Repository Layout</a></li>
+<li><a href="#django-backend-deep-dive"
+id="toc-django-backend-deep-dive">6. Django Backend Deep Dive</a>
+<ul>
+<li><a href="#django-concepts-mapped-to-this-project"
+id="toc-django-concepts-mapped-to-this-project">6.1 Django concepts
+mapped to this project</a></li>
+<li><a href="#installed-apps-settings.py"
+id="toc-installed-apps-settings.py">6.2 Installed apps
+(settings.py)</a></li>
+<li><a href="#rest-framework-defaults"
+id="toc-rest-framework-defaults">6.3 REST Framework defaults</a></li>
+<li><a href="#typical-viewset-pattern"
+id="toc-typical-viewset-pattern">6.4 Typical ViewSet pattern</a></li>
+<li><a href="#reports-app-different-pattern"
+id="toc-reports-app-different-pattern">6.5 Reports app (different
+pattern)</a></li>
+<li><a href="#key-business-logic-locations"
+id="toc-key-business-logic-locations">6.6 Key business logic
+locations</a></li>
+<li><a href="#management-commands" id="toc-management-commands">6.7
+Management commands</a></li>
+</ul></li>
+<li><a href="#database-schema-relationships"
+id="toc-database-schema-relationships">7. Database Schema &amp;
+Relationships</a>
+<ul>
+<li><a href="#entity-relationship-core"
+id="toc-entity-relationship-core">Entity relationship (core)</a></li>
+<li><a href="#model-summary" id="toc-model-summary">Model
+summary</a></li>
+<li><a href="#important-constraints"
+id="toc-important-constraints">Important constraints</a></li>
+<li><a href="#database-file" id="toc-database-file">Database
+file</a></li>
+</ul></li>
+<li><a href="#rest-api-reference" id="toc-rest-api-reference">8. REST
+API Reference</a>
+<ul>
+<li><a href="#root-routes-soupssnacksurls.py"
+id="toc-root-routes-soupssnacksurls.py">Root routes
+(soupssnacks/urls.py)</a></li>
+<li><a href="#reports-endpoints-reportsurls.py"
+id="toc-reports-endpoints-reportsurls.py">Reports endpoints
+(reports/urls.py)</a></li>
+<li><a href="#nested-url-pattern" id="toc-nested-url-pattern">Nested URL
+pattern</a></li>
+</ul></li>
+<li><a href="#authentication-authorization"
+id="toc-authentication-authorization">9. Authentication &amp;
+Authorization</a>
+<ul>
+<li><a href="#session-based-auth-flow"
+id="toc-session-based-auth-flow">Session-based auth flow</a></li>
+<li><a href="#csrf-cross-site-request-forgery"
+id="toc-csrf-cross-site-request-forgery">CSRF (Cross-Site Request
+Forgery)</a></li>
+<li><a href="#cors" id="toc-cors">CORS</a></li>
+<li><a href="#permission-classes-accountspermissions.py"
+id="toc-permission-classes-accountspermissions.py">Permission classes
+(accounts/permissions.py)</a></li>
+<li><a href="#frontend-mirror-protectedroute.js"
+id="toc-frontend-mirror-protectedroute.js">Frontend mirror
+(ProtectedRoute.js)</a></li>
+</ul></li>
+<li><a href="#react-frontend-deep-dive"
+id="toc-react-frontend-deep-dive">10. React Frontend Deep Dive</a>
+<ul>
+<li><a href="#react-concepts-mapped-to-this-project"
+id="toc-react-concepts-mapped-to-this-project">10.1 React concepts
+mapped to this project</a></li>
+<li><a href="#file-roles" id="toc-file-roles">10.2 File roles</a></li>
+<li><a href="#route-map" id="toc-route-map">10.3 Route map</a></li>
+<li><a href="#typical-page-pattern" id="toc-typical-page-pattern">10.4
+Typical page pattern</a></li>
+<li><a href="#styling-approach" id="toc-styling-approach">10.5 Styling
+approach</a></li>
+</ul></li>
+<li><a href="#integrations-data-import"
+id="toc-integrations-data-import">11. Integrations &amp; Data Import</a>
+<ul>
+<li><a href="#admin-bulk-import-two-step"
+id="toc-admin-bulk-import-two-step">11.1 Admin bulk import
+(two-step)</a></li>
+<li><a href="#google-sheets-sync" id="toc-google-sheets-sync">11.2
+Google Sheets sync</a></li>
+<li><a href="#order-csv-import-operator"
+id="toc-order-csv-import-operator">11.3 Order CSV import
+(operator)</a></li>
+</ul></li>
+<li><a href="#development-workflow" id="toc-development-workflow">12.
+Development Workflow</a>
+<ul>
+<li><a href="#first-time-setup" id="toc-first-time-setup">First-time
+setup</a></li>
+<li><a href="#daily-development" id="toc-daily-development">Daily
+development</a></li>
+<li><a href="#environment-variables-.env"
+id="toc-environment-variables-.env">Environment variables
+(.env)</a></li>
+<li><a href="#demo-credentials" id="toc-demo-credentials">Demo
+credentials</a></li>
+<li><a href="#making-schema-changes"
+id="toc-making-schema-changes">Making schema changes</a></li>
+<li><a href="#running-tests" id="toc-running-tests">Running
+tests</a></li>
+</ul></li>
+<li><a href="#python-full-stack-learning-path"
+id="toc-python-full-stack-learning-path">13. Python → Full-Stack
+Learning Path</a>
+<ul>
+<li><a href="#phase-1-months-13-django-fundamentals"
+id="toc-phase-1-months-13-django-fundamentals">Phase 1 — Months 1–3:
+Django fundamentals</a></li>
+<li><a href="#phase-2-months-46-frontend-basics-api-consumption"
+id="toc-phase-2-months-46-frontend-basics-api-consumption">Phase 2 —
+Months 4–6: Frontend basics + API consumption</a></li>
+<li><a href="#phase-3-months-79-full-stack-features"
+id="toc-phase-3-months-79-full-stack-features">Phase 3 — Months 7–9:
+Full-stack features</a></li>
+<li><a href="#phase-4-months-1012-production-mindset"
+id="toc-phase-4-months-1012-production-mindset">Phase 4 — Months 10–12:
+Production mindset</a></li>
+<li><a href="#skills-checklist-self-assessment"
+id="toc-skills-checklist-self-assessment">Skills checklist
+(self-assessment)</a></li>
+<li><a href="#where-logic-should-live-golden-rules"
+id="toc-where-logic-should-live-golden-rules">Where logic should live
+(golden rules)</a></li>
+</ul></li>
+<li><a href="#how-to-extend-this-app"
+id="toc-how-to-extend-this-app">14. How to Extend This App</a>
+<ul>
+<li><a href="#add-a-new-api-resource-checklist"
+id="toc-add-a-new-api-resource-checklist">Add a new API resource
+(checklist)</a></li>
+<li><a href="#add-a-report" id="toc-add-a-report">Add a report</a></li>
+<li><a href="#add-an-import-type" id="toc-add-an-import-type">Add an
+import type</a></li>
+</ul></li>
+<li><a href="#production-security-checklist"
+id="toc-production-security-checklist">15. Production &amp; Security
+Checklist</a></li>
+<li><a href="#glossary" id="toc-glossary">16. Glossary</a></li>
+<li><a href="#quick-reference-tables"
+id="toc-quick-reference-tables">17. Quick Reference Tables</a>
+<ul>
+<li><a href="#role-feature-matrix" id="toc-role-feature-matrix">Role →
+feature matrix</a></li>
+<li><a href="#order-status-values" id="toc-order-status-values">Order
+status values</a></li>
+<li><a href="#payment-status-values"
+id="toc-payment-status-values">Payment status values</a></li>
+<li><a href="#key-file-index" id="toc-key-file-index">Key file
+index</a></li>
+</ul></li>
+<li><a href="#document-maintenance"
+id="toc-document-maintenance">Document maintenance</a></li>
+</ul></li>
+</ul>
+</nav>
+<section id="soupssnacks-v2-full-stack-reference-learning-guide"
+class="level1">
+<h1>SoupsSnacks v2 — Full-Stack Reference &amp; Learning Guide</h1>
+<p><strong>Document version:</strong> 1.0<br />
+<strong>Project:</strong> Soups, Snacks &amp; More — Order Management
+System<br />
+<strong>Repository:</strong> SoupsSnacks_v2<br />
+<strong>Generated for:</strong> Python engineers growing into Django +
+React full-stack development</p>
+<hr />
+<section id="executive-summary" class="level2">
+<h2>1. Executive Summary</h2>
+<p>SoupsSnacks v2 is a <strong>working web application</strong> for
+managing a home-based food business. It was built with <strong>Django
+5.2</strong> (backend API) and <strong>React 19</strong> (single-page
+frontend), communicating over <strong>REST + JSON</strong> with
+<strong>Django session cookies</strong> for authentication.</p>
+<p>As a core Python developer, you already understand models, business
+logic, and data. This app adds:</p>
+<ul>
+<li><strong>HTTP APIs</strong> (Django REST Framework)</li>
+<li><strong>Browser UI</strong> (React components, routing, state)</li>
+<li><strong>Cross-origin security</strong> (CORS, CSRF)</li>
+<li><strong>Role-based access</strong> (admin, operator, cook)</li>
+</ul>
+<p>The goal of this document is to be your <strong>offline
+reference</strong> when enhancing the app and when practicing full-stack
+skills until you can build similar systems independently.</p>
+<hr />
+</section>
+<section id="business-domain-features" class="level2">
+<h2>2. Business Domain &amp; Features</h2>
+<section id="what-the-business-does" class="level3">
+<h3>What the business does</h3>
+<p>Operators run a daily food service (soups, snacks, sweets, lunch,
+etc.) primarily for <strong>residential apartment customers</strong> in
+Bangalore-style communities (apartment name + block filters).</p>
+</section>
+<section id="core-workflows" class="level3">
+<h3>Core workflows</h3>
+<table>
+<colgroup>
+<col style="width: 43%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Catalog</strong></td>
+<td>Define products with selling price and ingredient cost breakdown;
+margins computed automatically</td>
+</tr>
+<tr>
+<td><strong>Daily menu</strong></td>
+<td>Pick products available on a given date; export text for
+WhatsApp</td>
+</tr>
+<tr>
+<td><strong>Orders</strong></td>
+<td>Create orders with line items; track status from draft → delivered →
+completed</td>
+</tr>
+<tr>
+<td><strong>Payments</strong></td>
+<td>Record cash/UPI/etc.; order payment status updates
+automatically</td>
+</tr>
+<tr>
+<td><strong>Reports</strong></td>
+<td>Sales, profitability, unpaid orders, inactive customers, loyalty
+analytics</td>
+</tr>
+<tr>
+<td><strong>Import</strong></td>
+<td>Bulk CSV/Excel for customers, products, orders, payments</td>
+</tr>
+<tr>
+<td><strong>Google Sheets</strong></td>
+<td>Sync new rows from a form-linked sheet into orders</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="user-roles" class="level3">
+<h3>User roles</h3>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 40%" />
+<col style="width: 42%" />
+</colgroup>
+<thead>
+<tr>
+<th>Role</th>
+<th>Typical user</th>
+<th>Primary tasks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>admin</strong></td>
+<td>Owner</td>
+<td>Users, imports, Google sync, everything</td>
+</tr>
+<tr>
+<td><strong>operator</strong></td>
+<td>Front desk</td>
+<td>Customers, orders, payments, reports, daily offerings</td>
+</tr>
+<tr>
+<td><strong>cook</strong></td>
+<td>Kitchen</td>
+<td>Product catalog and cost components (menu/pricing)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</section>
+</section>
+<section id="architecture-overview" class="level2">
+<h2>3. Architecture Overview</h2>
+<section id="high-level-diagram" class="level3">
+<h3>High-level diagram</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  Browser (http://localhost:3000)                                 │
+│  React SPA — pages, forms, tables, charts                        │
+│  axios → sends cookies + CSRF header on POST/PUT/DELETE          │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTP (JSON)
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Django (http://localhost:8000)                                  │
+│  /api/*  →  DRF ViewSets &amp; APIViews  →  Models  →  SQLite       │
+│  /admin/ →  Django Admin (optional debugging)                    │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ optional
+                             ▼
+                    Google Sheets API (service account)</code></pre>
+</section>
+<section id="architectural-choices-why-they-matter" class="level3">
+<h3>Architectural choices (why they matter)</h3>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 36%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr>
+<th>Choice</th>
+<th>Rationale</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Separate frontend</strong></td>
+<td>React gives rich UI without Django templates</td>
+<td>Two codebases to deploy</td>
+</tr>
+<tr>
+<td><strong>Session auth</strong></td>
+<td>Simple, secure for same-site SPA</td>
+<td>Harder for mobile/native apps (would use tokens)</td>
+</tr>
+<tr>
+<td><strong>SQLite</strong></td>
+<td>Zero-config for local dev</td>
+<td>Not ideal for high concurrent write load</td>
+</tr>
+<tr>
+<td><strong>DRF ViewSets</strong></td>
+<td>Less boilerplate for CRUD</td>
+<td>Learning curve vs plain Django views</td>
+</tr>
+<tr>
+<td><strong>Domain apps</strong></td>
+<td>Each business area is isolated</td>
+<td>More files, but clearer boundaries</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="request-lifecycle-example-create-order" class="level3">
+<h3>Request lifecycle (example: create order)</h3>
+<ol type="1">
+<li>User fills form in <code>OrderForm.js</code></li>
+<li>React calls <code>POST /api/orders/orders/</code> via
+<code>api.js</code></li>
+<li>Browser sends session cookie + <code>X-CSRFToken</code></li>
+<li>Django middleware: CORS → Session → CSRF → Auth</li>
+<li>DRF checks <code>IsOperator</code> permission</li>
+<li><code>OrderCreateUpdateSerializer</code> validates nested
+<code>items</code></li>
+<li>Models saved; JSON response returned</li>
+<li>React navigates to order detail or refreshes list</li>
+</ol>
+<hr />
+</section>
+</section>
+<section id="technology-stack" class="level2">
+<h2>4. Technology Stack</h2>
+<section id="backend-pinned-in-requirements.txt" class="level3">
+<h3>Backend (pinned in requirements.txt)</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Version</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Django</td>
+<td>5.2.12</td>
+<td>Web framework, ORM, admin, sessions</td>
+</tr>
+<tr>
+<td>djangorestframework</td>
+<td>3.17.0</td>
+<td>REST API layer</td>
+</tr>
+<tr>
+<td>django-cors-headers</td>
+<td>4.9.0</td>
+<td>Allow React origin with credentials</td>
+</tr>
+<tr>
+<td>python-dotenv</td>
+<td>1.2.2</td>
+<td>Load <code>.env</code> for secrets/settings</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="backend-optional-used-in-code" class="level3">
+<h3>Backend (optional, used in code)</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>openpyxl</td>
+<td>Read <code>.xlsx</code> in import preview</td>
+</tr>
+<tr>
+<td>google-auth, google-api-python-client</td>
+<td>Google Sheets sync</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="frontend-package.json" class="level3">
+<h3>Frontend (package.json)</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>react, react-dom ^19</td>
+<td>UI components</td>
+</tr>
+<tr>
+<td>react-router-dom ^7</td>
+<td>Client-side routing (<code>/orders</code>, <code>/catalog</code>,
+…)</td>
+</tr>
+<tr>
+<td>axios ^1.13</td>
+<td>HTTP client to Django API</td>
+</tr>
+<tr>
+<td>react-scripts 5</td>
+<td>Create React App build tooling</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="what-is-not-used" class="level3">
+<h3>What is NOT used</h3>
+<ul>
+<li>No GraphQL, Redux, TanStack Query, Tailwind, Material UI</li>
+<li>No Docker/Kubernetes in repo (you can add later)</li>
+<li>No Celery/Redis (all sync processing)</li>
+</ul>
+<hr />
+</section>
+</section>
+<section id="repository-layout" class="level2">
+<h2>5. Repository Layout</h2>
+<pre><code>SoupsSnacks_v2/
+├── soupssnacks/              # Django project settings &amp; root URLs
+│   ├── settings.py
+│   └── urls.py
+├── accounts/                 # Custom User, login, permissions
+├── customers/
+├── catalog/                  # Products + cost components
+├── offerings/                # Daily menus
+├── orders/
+├── payments/
+├── reports/                  # Analytics APIViews (no models)
+├── imports/                  # Bulk CSV/Excel
+├── integrations/             # Google Sheets
+├── frontend/src/             # React application
+│   ├── App.js                # Route definitions
+│   ├── contexts/AuthContext.js
+│   ├── services/api.js       # Axios instance
+│   ├── components/           # Layout, ProtectedRoute, etc.
+│   └── pages/                # One file pair per screen (.js + .css)
+├── import_templates/         # Sample CSV files
+├── tests/test_core.py
+├── manage.py
+├── seed_demo_data.py         # Rich demo dataset
+├── requirements.txt
+├── .env.example
+└── docs/                     # This reference document</code></pre>
+<p><strong>Note:</strong> README mentions a <code>backend/</code>
+folder; in this repo Django apps live at the <strong>root</strong>
+beside <code>frontend/</code>.</p>
+<hr />
+</section>
+<section id="django-backend-deep-dive" class="level2">
+<h2>6. Django Backend Deep Dive</h2>
+<section id="django-concepts-mapped-to-this-project" class="level3">
+<h3>6.1 Django concepts mapped to this project</h3>
+<table>
+<thead>
+<tr>
+<th>Django concept</th>
+<th>Where you see it</th>
+<th>Python analogy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Project</strong></td>
+<td><code>soupssnacks/</code></td>
+<td>Top-level package</td>
+</tr>
+<tr>
+<td><strong>App</strong></td>
+<td><code>orders/</code>, <code>customers/</code></td>
+<td>Feature module</td>
+</tr>
+<tr>
+<td><strong>Model</strong></td>
+<td><code>orders/models.py</code></td>
+<td>Class ↔︎ DB table</td>
+</tr>
+<tr>
+<td><strong>Migration</strong></td>
+<td><code>orders/migrations/</code></td>
+<td>Schema version control</td>
+</tr>
+<tr>
+<td><strong>ViewSet</strong></td>
+<td><code>orders/views.py</code></td>
+<td>Class exposing CRUD endpoints</td>
+</tr>
+<tr>
+<td><strong>Serializer</strong></td>
+<td><code>orders/serializers.py</code></td>
+<td>Validation + JSON ↔︎ model</td>
+</tr>
+<tr>
+<td><strong>URL routing</strong></td>
+<td><code>*/urls.py</code></td>
+<td>URL → handler map</td>
+</tr>
+<tr>
+<td><strong>Middleware</strong></td>
+<td><code>settings.py</code> MIDDLEWARE</td>
+<td>Request pipeline hooks</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="installed-apps-settings.py" class="level3">
+<h3>6.2 Installed apps (settings.py)</h3>
+<p>Django built-ins: admin, auth, contenttypes, sessions, messages,
+staticfiles.</p>
+<p>Third-party: <code>rest_framework</code>,
+<code>corsheaders</code>.</p>
+<p>Project apps: accounts, customers, catalog, offerings, orders,
+payments, reports, imports, integrations.</p>
+</section>
+<section id="rest-framework-defaults" class="level3">
+<h3>6.3 REST Framework defaults</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>DEFAULT_PERMISSION_CLASSES <span class="op">=</span> [IsAuthenticated]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>DEFAULT_AUTHENTICATION_CLASSES <span class="op">=</span> [SessionAuthentication]</span></code></pre></div>
+<p>Every API endpoint requires login unless explicitly overridden
+(e.g. <code>login</code>, <code>health</code>).</p>
+</section>
+<section id="typical-viewset-pattern" class="level3">
+<h3>6.4 Typical ViewSet pattern</h3>
+<p>Each resource app follows:</p>
+<ol type="1">
+<li><strong>Model</strong> — database fields and <code>@property</code>
+for computed values</li>
+<li><strong>Serializer</strong> — <code>ModelSerializer</code> with
+read-only computed fields; separate create/update serializer for nested
+children</li>
+<li><strong>ViewSet</strong> — <code>ModelViewSet</code> +
+<code>@action</code> for custom endpoints (<code>stats</code>,
+<code>toggle_active</code>)</li>
+<li><strong>urls.py</strong> — <code>DefaultRouter</code> registers
+<code>basename</code> →
+<code>/api/&lt;app&gt;/&lt;resource&gt;/</code></li>
+</ol>
+<p>Example custom actions on orders:</p>
+<ul>
+<li><code>POST .../change_status/</code> — workflow transitions</li>
+<li><code>POST .../change_payment_status/</code> — manual override</li>
+<li><code>GET .../today/</code>, <code>.../pending/</code> — filtered
+lists</li>
+<li><code>POST .../import_csv/</code> — operator CSV import</li>
+</ul>
+</section>
+<section id="reports-app-different-pattern" class="level3">
+<h3>6.5 Reports app (different pattern)</h3>
+<p><code>reports/</code> has <strong>no models</strong>. It uses
+class-based <code>APIView</code> classes that run Django ORM
+aggregations (<code>Sum</code>, <code>Count</code>,
+<code>annotate</code>) and return JSON or CSV
+<code>HttpResponse</code>.</p>
+<p>This is ideal for read-only analytics without polluting domain
+models.</p>
+</section>
+<section id="key-business-logic-locations" class="level3">
+<h3>6.6 Key business logic locations</h3>
+<table>
+<colgroup>
+<col style="width: 53%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>Logic</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Order totals / profit</td>
+<td><code>orders/models.py</code> — properties on <code>Order</code>,
+<code>OrderItem</code></td>
+</tr>
+<tr>
+<td>Payment status sync</td>
+<td><code>payments/models.py</code> — <code>save()</code> /
+<code>delete()</code> on <code>Payment</code></td>
+</tr>
+<tr>
+<td>Product margins</td>
+<td><code>catalog/models.py</code> — <code>unit_cost</code>,
+<code>margin_percent</code></td>
+</tr>
+<tr>
+<td>Google row → order</td>
+<td><code>integrations/google_sheets_service.py</code></td>
+</tr>
+<tr>
+<td>CSV import validation</td>
+<td><code>imports/views.py</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="management-commands" class="level3">
+<h3>6.7 Management commands</h3>
+<table>
+<colgroup>
+<col style="width: 56%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>python manage.py migrate</code></td>
+<td>Apply DB schema</td>
+</tr>
+<tr>
+<td><code>python manage.py createsuperuser</code></td>
+<td>Django admin user</td>
+</tr>
+<tr>
+<td><code>python manage.py create_test_users</code></td>
+<td>admin/operator/cook test accounts</td>
+</tr>
+<tr>
+<td><code>python manage.py create_sample_products</code></td>
+<td>Sample catalog</td>
+</tr>
+<tr>
+<td><code>python manage.py create_sample_customers</code></td>
+<td>Sample customers</td>
+</tr>
+<tr>
+<td><code>python seed_demo_data.py</code></td>
+<td>Full demo (–reset to wipe)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</section>
+</section>
+<section id="database-schema-relationships" class="level2">
+<h2>7. Database Schema &amp; Relationships</h2>
+<section id="entity-relationship-core" class="level3">
+<h3>Entity relationship (core)</h3>
+<pre><code>User
+
+Customer ──&lt; Order ──&lt; OrderItem &gt;── Product
+              │
+              ├──&lt; Payment
+              └──&lt; GoogleSheetOrderRef
+
+Product ──&lt; ProductCostComponent
+Product ──&lt; DailyOfferingItem &gt;── DailyOffering
+
+GoogleSheetConfig ──&lt; GoogleSheetSyncLog
+                 └──&lt; GoogleSheetOrderRef &gt;── Order
+
+ImportLog ──&gt; User</code></pre>
+</section>
+<section id="model-summary" class="level3">
+<h3>Model summary</h3>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 46%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr>
+<th>Model</th>
+<th>Key fields</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>User</strong></td>
+<td>username, role (admin/operator/cook)</td>
+<td>Extends AbstractUser; table <code>auth_user</code></td>
+</tr>
+<tr>
+<td><strong>Customer</strong></td>
+<td>name, mobile, apartment_name, block</td>
+<td>Indexed for search/filters</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>name, unit, category, selling_price, image_url</td>
+<td>unique_together (name, unit)</td>
+</tr>
+<tr>
+<td><strong>ProductCostComponent</strong></td>
+<td>FK product, quantity, cost_per_unit</td>
+<td>Rolls up to unit_cost</td>
+</tr>
+<tr>
+<td><strong>DailyOffering</strong></td>
+<td>offering_date (unique), notes</td>
+<td>One menu per day</td>
+</tr>
+<tr>
+<td><strong>DailyOfferingItem</strong></td>
+<td>FK offering, FK product, available_quantity</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Order</strong></td>
+<td>order_number, customer, status, payment_status</td>
+<td>Auto order number</td>
+</tr>
+<tr>
+<td><strong>OrderItem</strong></td>
+<td>quantity, unit_price, unit_cost_snapshot</td>
+<td>Snapshots preserve history</td>
+</tr>
+<tr>
+<td><strong>Payment</strong></td>
+<td>order, amount, method, payment_date</td>
+<td>Updates order payment_status</td>
+</tr>
+<tr>
+<td><strong>ImportLog</strong></td>
+<td>import_type, status, errors (JSON)</td>
+<td>Audit trail</td>
+</tr>
+<tr>
+<td><strong>GoogleSheetConfig</strong></td>
+<td>sheet_id, field_mapping (JSON)</td>
+<td>Column letter → field</td>
+</tr>
+<tr>
+<td><strong>GoogleSheetOrderRef</strong></td>
+<td>config, sheet_row, order</td>
+<td>Dedup sync</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="important-constraints" class="level3">
+<h3>Important constraints</h3>
+<ul>
+<li><strong>PROTECT</strong> on <code>Order.customer</code> and
+<code>OrderItem.product</code> — prevents accidental deletes</li>
+<li><strong>CASCADE</strong> on payments and order items when order
+deleted</li>
+<li>Payment validation prevents total paid &gt; order revenue (with 0.01
+tolerance)</li>
+</ul>
+</section>
+<section id="database-file" class="level3">
+<h3>Database file</h3>
+<ul>
+<li><strong>Engine:</strong> SQLite</li>
+<li><strong>Path:</strong> <code>db.sqlite3</code> at project root</li>
+<li><strong>Inspect:</strong> <code>python manage.py dbshell</code> or
+DB browser tools</li>
+</ul>
+<hr />
+</section>
+</section>
+<section id="rest-api-reference" class="level2">
+<h2>8. REST API Reference</h2>
+<p><strong>Base URL:</strong>
+<code>http://localhost:8000/api/</code></p>
+<section id="root-routes-soupssnacksurls.py" class="level3">
+<h3>Root routes (soupssnacks/urls.py)</h3>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>App</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/api/health/</code></td>
+<td>Public health check</td>
+</tr>
+<tr>
+<td><code>/api/accounts/</code></td>
+<td>Auth &amp; users</td>
+</tr>
+<tr>
+<td><code>/api/customers/</code></td>
+<td>Customers</td>
+</tr>
+<tr>
+<td><code>/api/catalog/</code></td>
+<td>Products, cost components</td>
+</tr>
+<tr>
+<td><code>/api/offerings/</code></td>
+<td>Daily offerings</td>
+</tr>
+<tr>
+<td><code>/api/orders/</code></td>
+<td>Orders</td>
+</tr>
+<tr>
+<td><code>/api/payments/</code></td>
+<td>Payments</td>
+</tr>
+<tr>
+<td><code>/api/reports/</code></td>
+<td>Dashboard &amp; reports</td>
+</tr>
+<tr>
+<td><code>/api/imports/</code></td>
+<td>Bulk import</td>
+</tr>
+<tr>
+<td><code>/api/integrations/</code></td>
+<td>Google Sheets</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="reports-endpoints-reportsurls.py" class="level3">
+<h3>Reports endpoints (reports/urls.py)</h3>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reports/dashboard/</code></td>
+<td>KPIs for home dashboard</td>
+</tr>
+<tr>
+<td><code>reports/sales/</code></td>
+<td>Sales over date range</td>
+</tr>
+<tr>
+<td><code>reports/customers/</code></td>
+<td>Customer rankings</td>
+</tr>
+<tr>
+<td><code>reports/products/</code></td>
+<td>Product performance</td>
+</tr>
+<tr>
+<td><code>reports/unpaid/</code></td>
+<td>Outstanding payments</td>
+</tr>
+<tr>
+<td><code>reports/inactive-customers/</code></td>
+<td>Churn risk</td>
+</tr>
+<tr>
+<td><code>reports/order-profitability/</code></td>
+<td>Per-order margin</td>
+</tr>
+<tr>
+<td><code>reports/export/*/</code></td>
+<td>CSV downloads</td>
+</tr>
+<tr>
+<td><code>reports/loyalty/*/</code></td>
+<td>Repeat, frequency, recency, LTV, cohorts</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="nested-url-pattern" class="level3">
+<h3>Nested URL pattern</h3>
+<p>DRF routers produce paths like:</p>
+<ul>
+<li><code>GET /api/orders/orders/</code> — list</li>
+<li><code>POST /api/orders/orders/</code> — create</li>
+<li><code>GET /api/orders/orders/{id}/</code> — detail</li>
+<li><code>PUT /api/orders/orders/{id}/</code> — update</li>
+</ul>
+<p>The duplicate <code>orders/orders</code> comes from app prefix +
+router basename — consistent across apps.</p>
+<hr />
+</section>
+</section>
+<section id="authentication-authorization" class="level2">
+<h2>9. Authentication &amp; Authorization</h2>
+<section id="session-based-auth-flow" class="level3">
+<h3>Session-based auth flow</h3>
+<ol type="1">
+<li><code>POST /api/accounts/login/</code> with username/password
+(AllowAny)</li>
+<li>Django creates session; sets <code>sessionid</code> cookie</li>
+<li>Frontend stores user in React state (<code>AuthContext</code>);
+cookie handled by browser</li>
+<li><code>GET /api/accounts/me/</code> restores session on page
+refresh</li>
+<li><code>POST /api/accounts/logout/</code> destroys session</li>
+</ol>
+</section>
+<section id="csrf-cross-site-request-forgery" class="level3">
+<h3>CSRF (Cross-Site Request Forgery)</h3>
+<ul>
+<li>Django sets <code>csrftoken</code> cookie (readable by JS:
+<code>CSRF_COOKIE_HTTPONLY = False</code>)</li>
+<li><code>api.js</code> interceptor copies cookie →
+<code>X-CSRFToken</code> header on mutating requests</li>
+<li>Required for POST/PUT/PATCH/DELETE</li>
+</ul>
+</section>
+<section id="cors" class="level3">
+<h3>CORS</h3>
+<ul>
+<li><code>CORS_ALLOWED_ORIGINS</code> includes
+<code>http://localhost:3000</code></li>
+<li><code>CORS_ALLOW_CREDENTIALS = True</code> — required for cookies
+cross-port</li>
+</ul>
+</section>
+<section id="permission-classes-accountspermissions.py" class="level3">
+<h3>Permission classes (accounts/permissions.py)</h3>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IsAdmin</code></td>
+<td><code>user.is_admin</code></td>
+</tr>
+<tr>
+<td><code>IsOperator</code></td>
+<td>operator OR admin</td>
+</tr>
+<tr>
+<td><code>IsCook</code></td>
+<td>cook OR admin</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="frontend-mirror-protectedroute.js" class="level3">
+<h3>Frontend mirror (ProtectedRoute.js)</h3>
+<ul>
+<li><code>requiredRole="admin"</code> — strict admin</li>
+<li><code>requiredRole="operator"</code> — admin or operator</li>
+<li><code>requiredRole="cook"</code> — admin or cook</li>
+</ul>
+<p><strong>Defense in depth:</strong> Always enforce permissions on the
+<strong>backend</strong>; frontend guards are UX only.</p>
+<hr />
+</section>
+</section>
+<section id="react-frontend-deep-dive" class="level2">
+<h2>10. React Frontend Deep Dive</h2>
+<section id="react-concepts-mapped-to-this-project" class="level3">
+<h3>10.1 React concepts mapped to this project</h3>
+<table>
+<thead>
+<tr>
+<th>React concept</th>
+<th>Where you see it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Component</strong></td>
+<td>Each <code>pages/*.js</code> file</td>
+</tr>
+<tr>
+<td><strong>Props</strong></td>
+<td>Parent → child data</td>
+</tr>
+<tr>
+<td><strong>State</strong></td>
+<td><code>useState</code> in forms and lists</td>
+</tr>
+<tr>
+<td><strong>Effect</strong></td>
+<td><code>useEffect</code> to load data on mount</td>
+</tr>
+<tr>
+<td><strong>Context</strong></td>
+<td><code>AuthContext</code> — global user state</td>
+</tr>
+<tr>
+<td><strong>Router</strong></td>
+<td><code>App.js</code> — URL → component</td>
+</tr>
+<tr>
+<td><strong>Conditional render</strong></td>
+<td>Loading spinners, empty lists</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="file-roles" class="level3">
+<h3>10.2 File roles</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index.js</code></td>
+<td>Mount <code>&lt;App /&gt;</code> to DOM</td>
+</tr>
+<tr>
+<td><code>App.js</code></td>
+<td>All routes + <code>AuthProvider</code> wrapper</td>
+</tr>
+<tr>
+<td><code>contexts/AuthContext.js</code></td>
+<td>Login state, <code>useAuth()</code> hook</td>
+</tr>
+<tr>
+<td><code>services/api.js</code></td>
+<td>Single axios instance</td>
+</tr>
+<tr>
+<td><code>components/Layout.js</code></td>
+<td>Shell: header, sidebar, theme toggle</td>
+</tr>
+<tr>
+<td><code>components/ProtectedRoute.js</code></td>
+<td>Auth + role gate</td>
+</tr>
+<tr>
+<td><code>pages/*.js</code></td>
+<td>Screen logic (fetch, display, forms)</td>
+</tr>
+<tr>
+<td><code>styles/global.css</code></td>
+<td>Shared buttons, tables, forms</td>
+</tr>
+<tr>
+<td><code>components/Layout.css</code></td>
+<td>CSS variables, light/dark theme</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="route-map" class="level3">
+<h3>10.3 Route map</h3>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Page</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/login</code></td>
+<td>Login</td>
+<td>public</td>
+</tr>
+<tr>
+<td><code>/</code></td>
+<td>Dashboard</td>
+<td>any authenticated</td>
+</tr>
+<tr>
+<td><code>/customers/*</code></td>
+<td>Customers CRUD</td>
+<td>operator+</td>
+</tr>
+<tr>
+<td><code>/catalog/*</code></td>
+<td>Products (not <code>/products</code>)</td>
+<td>cook+</td>
+</tr>
+<tr>
+<td><code>/offerings</code></td>
+<td>Daily offerings</td>
+<td>operator+</td>
+</tr>
+<tr>
+<td><code>/orders/*</code></td>
+<td>Orders</td>
+<td>operator+</td>
+</tr>
+<tr>
+<td><code>/payments</code></td>
+<td>Payment ledger</td>
+<td>operator+</td>
+</tr>
+<tr>
+<td><code>/reports</code></td>
+<td>Reports tabs</td>
+<td>operator+</td>
+</tr>
+<tr>
+<td><code>/analytics</code></td>
+<td>Loyalty analytics</td>
+<td>operator+</td>
+</tr>
+<tr>
+<td><code>/import</code></td>
+<td>Bulk import</td>
+<td>admin</td>
+</tr>
+<tr>
+<td><code>/google-sync</code></td>
+<td>Google Sheets</td>
+<td>admin</td>
+</tr>
+<tr>
+<td><code>/users</code></td>
+<td>User admin</td>
+<td>admin</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Known quirk:</strong> Dashboard may link to
+<code>/products/new</code>; correct path is
+<code>/catalog/new</code>.</p>
+</section>
+<section id="typical-page-pattern" class="level3">
+<h3>10.4 Typical page pattern</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. Import api and hooks</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> api <span class="im">from</span> <span class="st">&#39;../services/api&#39;</span><span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { useState<span class="op">,</span> useEffect } <span class="im">from</span> <span class="st">&#39;react&#39;</span><span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. Load data on mount</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">useEffect</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  api<span class="op">.</span><span class="fu">get</span>(<span class="st">&#39;/orders/orders/&#39;</span>)<span class="op">.</span><span class="fu">then</span>(res <span class="kw">=&gt;</span> <span class="fu">setOrders</span>(res<span class="op">.</span><span class="at">data</span>))<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> [])<span class="op">;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. Render table + filters + actions</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">// 4. POST/PUT/DELETE on button click, then refresh or navigate</span></span></code></pre></div>
+</section>
+<section id="styling-approach" class="level3">
+<h3>10.5 Styling approach</h3>
+<ul>
+<li><strong>CSS variables</strong> in <code>Layout.css</code>
+(<code>--primary-color</code>, etc.)</li>
+<li><strong>Theme:</strong> <code>data-theme="light"|"dark"</code> on
+<code>&lt;html&gt;</code>, persisted in localStorage</li>
+<li><strong>No CSS modules</strong> — one <code>.css</code> file per
+page</li>
+<li><strong>INR formatting:</strong>
+<code>toLocaleString('en-IN')</code> in JS</li>
+</ul>
+<hr />
+</section>
+</section>
+<section id="integrations-data-import" class="level2">
+<h2>11. Integrations &amp; Data Import</h2>
+<section id="admin-bulk-import-two-step" class="level3">
+<h3>11.1 Admin bulk import (two-step)</h3>
+<ol type="1">
+<li><strong>Preview</strong> — <code>POST /api/imports/preview/</code>
+(multipart file upload)
+<ul>
+<li>Validates rows, returns errors + sample rows</li>
+</ul></li>
+<li><strong>Confirm</strong> — <code>POST /api/imports/confirm/</code>
+with <code>mode=valid_only</code>
+<ul>
+<li>Transactional insert; writes <code>ImportLog</code></li>
+</ul></li>
+</ol>
+<p>Types: <code>customers</code>, <code>products</code>,
+<code>orders</code>, <code>payments</code>.</p>
+<p>Templates: <code>GET /api/imports/template/{type}/</code> and
+<code>import_templates/*.csv</code>.</p>
+</section>
+<section id="google-sheets-sync" class="level3">
+<h3>11.2 Google Sheets sync</h3>
+<p><strong>Setup:</strong></p>
+<ol type="1">
+<li>Google Cloud project + Sheets API enabled</li>
+<li>Service account JSON → <code>GOOGLE_CREDENTIALS_JSON</code> env or
+<code>google_credentials.json</code></li>
+<li>Share target sheet with service account email</li>
+<li>Configure <code>GoogleSheetConfig</code> with column letter
+mapping</li>
+</ol>
+<p><strong>Sync logic (summary):</strong></p>
+<ul>
+<li>Read sheet from row 2+ (row 1 = headers)</li>
+<li>Skip rows already in <code>GoogleSheetOrderRef</code></li>
+<li>Find/create customer by mobile</li>
+<li>Match product by name/size heuristics</li>
+<li>Create order (confirmed, payment pending) + line item</li>
+<li>Optional write-back of order number to sheet</li>
+</ul>
+</section>
+<section id="order-csv-import-operator" class="level3">
+<h3>11.3 Order CSV import (operator)</h3>
+<p><code>POST /api/orders/orders/import_csv/</code> — lighter path for
+exported sheet data.</p>
+<hr />
+</section>
+</section>
+<section id="development-workflow" class="level2">
+<h2>12. Development Workflow</h2>
+<section id="first-time-setup" class="level3">
+<h3>First-time setup</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv SSCo</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> SSCo/bin/activate          <span class="co"># Windows: SSCo\Scripts\activate</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> frontend <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> install <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> ..</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py migrate</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> seed_demo_data.py          <span class="co"># optional</span></span></code></pre></div>
+</section>
+<section id="daily-development" class="level3">
+<h3>Daily development</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Terminal 1</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> SSCo/bin/activate</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py runserver        <span class="co"># :8000</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Terminal 2</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> frontend <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> start            <span class="co"># :3000</span></span></code></pre></div>
+<p>Or: <code>./setup.sh</code> (starts both).</p>
+</section>
+<section id="environment-variables-.env" class="level3">
+<h3>Environment variables (.env)</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DJANGO_SECRET_KEY</td>
+<td>Cryptographic signing</td>
+</tr>
+<tr>
+<td>DEBUG</td>
+<td>True for development only</td>
+</tr>
+<tr>
+<td>ALLOWED_HOSTS</td>
+<td>Comma-separated hostnames</td>
+</tr>
+<tr>
+<td>CORS_ALLOWED_ORIGINS</td>
+<td>Frontend URL(s)</td>
+</tr>
+<tr>
+<td>GOOGLE_CREDENTIALS_JSON</td>
+<td>Inline service account JSON (optional)</td>
+</tr>
+</tbody>
+</table>
+<p>Frontend optional: <code>REACT_APP_API_URL</code> in
+<code>frontend/.env</code> if API not on localhost:8000.</p>
+</section>
+<section id="demo-credentials" class="level3">
+<h3>Demo credentials</h3>
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>Password</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>admin</td>
+<td>admin123</td>
+<td>admin</td>
+</tr>
+<tr>
+<td>operator</td>
+<td>operator123</td>
+<td>operator</td>
+</tr>
+<tr>
+<td>cook</td>
+<td>cook123</td>
+<td>cook</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="making-schema-changes" class="level3">
+<h3>Making schema changes</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># After editing models.py</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py makemigrations</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py migrate</span></code></pre></div>
+</section>
+<section id="running-tests" class="level3">
+<h3>Running tests</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py test</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> manage.py test tests.test_core</span></code></pre></div>
+<hr />
+</section>
+</section>
+<section id="python-full-stack-learning-path" class="level2">
+<h2>13. Python → Full-Stack Learning Path</h2>
+<p>This section is a <strong>12-month study plan</strong> to grow from
+core Python to building apps like SoupsSnacks without relying on AI
+tools.</p>
+<section id="phase-1-months-13-django-fundamentals" class="level3">
+<h3>Phase 1 — Months 1–3: Django fundamentals</h3>
+<p><strong>Goals:</strong> Build a CRUD API without React.</p>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Practice in this repo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Models &amp; migrations</td>
+<td>Add a field to <code>Customer</code>, migrate</td>
+</tr>
+<tr>
+<td>Django shell</td>
+<td><code>python manage.py shell</code> — query
+<code>Order.objects.filter(...)</code></td>
+</tr>
+<tr>
+<td>Admin</td>
+<td>Register a model in <code>admin.py</code>, explore filters</td>
+</tr>
+<tr>
+<td>Class-based views</td>
+<td>Read one <code>APIView</code> in <code>reports/views.py</code></td>
+</tr>
+<tr>
+<td>DRF serializers</td>
+<td>Trace <code>OrderCreateUpdateSerializer</code> nested create</td>
+</tr>
+<tr>
+<td>Permissions</td>
+<td>Add a new <code>@action</code> with <code>IsAdmin</code> only</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Exercise:</strong> Add a <code>Customer.tags</code> CharField
+end-to-end: model → migration → serializer → list in admin.</p>
+<p><strong>Resources:</strong> Official Django tutorial, DRF quickstart,
+William Vincent’s books.</p>
+</section>
+<section id="phase-2-months-46-frontend-basics-api-consumption"
+class="level3">
+<h3>Phase 2 — Months 4–6: Frontend basics + API consumption</h3>
+<p><strong>Goals:</strong> Understand how React talks to Django.</p>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP methods</td>
+<td>Use browser DevTools Network tab on create order</td>
+</tr>
+<tr>
+<td>JSON shapes</td>
+<td>Compare API response to serializer fields</td>
+</tr>
+<tr>
+<td>React state</td>
+<td>Add a filter to an existing list page</td>
+</tr>
+<tr>
+<td>React Router</td>
+<td>Add a simple static <code>/help</code> page</td>
+</tr>
+<tr>
+<td>axios</td>
+<td>Add one new GET call and display result</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Exercise:</strong> Add <code>notes</code> display to customer
+list without AI — read <code>Customers.js</code> and
+<code>CustomerListSerializer</code>.</p>
+<p><strong>Resources:</strong> React official docs (Learn section), MDN
+HTTP guide.</p>
+</section>
+<section id="phase-3-months-79-full-stack-features" class="level3">
+<h3>Phase 3 — Months 7–9: Full-stack features</h3>
+<p><strong>Goals:</strong> Ship a small feature alone.</p>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nested writes</td>
+<td>Study order create payload in Network tab</td>
+</tr>
+<tr>
+<td>Transactions</td>
+<td>Read <code>imports/views.py</code> confirm flow</td>
+</tr>
+<tr>
+<td>Aggregations</td>
+<td>Add a simple count endpoint in <code>reports/</code></td>
+</tr>
+<tr>
+<td>File upload</td>
+<td>Trace <code>Import.js</code> multipart form</td>
+</tr>
+<tr>
+<td>Auth edge cases</td>
+<td>Test logged-out redirect, wrong role</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Exercise:</strong> Add “favorite product” per customer (FK
+nullable) — backend + dropdown on order form + migration.</p>
+</section>
+<section id="phase-4-months-1012-production-mindset" class="level3">
+<h3>Phase 4 — Months 10–12: Production mindset</h3>
+<p><strong>Goals:</strong> Deploy and maintain.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Learn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL</td>
+<td>Switch DATABASES in settings for staging</td>
+</tr>
+<tr>
+<td>Environment secrets</td>
+<td>Never commit <code>.env</code> or
+<code>google_credentials.json</code></td>
+</tr>
+<tr>
+<td>Static files</td>
+<td><code>npm run build</code> + WhiteNoise or nginx</td>
+</tr>
+<tr>
+<td>HTTPS</td>
+<td>Required for secure cookies in production</td>
+</tr>
+<tr>
+<td>Debugging</td>
+<td>Django <code>LOGGING</code>, React error boundaries</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td>Write one <code>APITestCase</code> for your new endpoint</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Exercise:</strong> Deploy to a $5 VPS or Railway/Render with
+Postgres — even if only you use it.</p>
+</section>
+<section id="skills-checklist-self-assessment" class="level3">
+<h3>Skills checklist (self-assessment)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />I can explain MVC vs Django’s MTV
+pattern</label></li>
+<li><label><input type="checkbox" />I can write a migration and fix a
+merge conflict</label></li>
+<li><label><input type="checkbox" />I can add a DRF endpoint without
+copying boilerplate blindly</label></li>
+<li><label><input type="checkbox" />I understand why CSRF exists and
+when cookies are sent</label></li>
+<li><label><input type="checkbox" />I can read React DevTools and find
+which component fetched data</label></li>
+<li><label><input type="checkbox" />I can trace a bug from UI click →
+API → serializer → model</label></li>
+<li><label><input type="checkbox" />I know when logic belongs in model
+vs serializer vs view</label></li>
+<li><label><input type="checkbox" />I can deploy backend + frontend
+separately</label></li>
+</ul>
+</section>
+<section id="where-logic-should-live-golden-rules" class="level3">
+<h3>Where logic should live (golden rules)</h3>
+<table>
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Put here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model</strong></td>
+<td>Invariants, computed properties, save() side effects that always
+apply</td>
+</tr>
+<tr>
+<td><strong>Serializer</strong></td>
+<td>Input validation, nested create/update, API field shaping</td>
+</tr>
+<tr>
+<td><strong>View</strong></td>
+<td>HTTP concerns, permissions, filtering querysets</td>
+</tr>
+<tr>
+<td><strong>React page</strong></td>
+<td>Display, user input, calling API — not business rules</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</section>
+</section>
+<section id="how-to-extend-this-app" class="level2">
+<h2>14. How to Extend This App</h2>
+<section id="add-a-new-api-resource-checklist" class="level3">
+<h3>Add a new API resource (checklist)</h3>
+<ol type="1">
+<li>Create or extend model in appropriate app</li>
+<li><code>makemigrations</code> + <code>migrate</code></li>
+<li>Add <code>Serializer</code>(s) in <code>serializers.py</code></li>
+<li>Add <code>ViewSet</code> in <code>views.py</code> with
+<code>permission_classes</code></li>
+<li>Register router in app <code>urls.py</code></li>
+<li>Include app URLs in <code>soupssnacks/urls.py</code> if new app</li>
+<li>Add axios calls in React page(s)</li>
+<li>Add route in <code>App.js</code> + nav link in
+<code>Layout.js</code></li>
+<li>Set <code>ProtectedRoute</code> role</li>
+<li>Write at least one API test</li>
+</ol>
+</section>
+<section id="add-a-report" class="level3">
+<h3>Add a report</h3>
+<ol type="1">
+<li>New class in <code>reports/views.py</code> (subclass
+<code>APIView</code>)</li>
+<li>URL in <code>reports/urls.py</code></li>
+<li>New tab or section in <code>Reports.js</code> or
+<code>CustomerAnalytics.js</code></li>
+</ol>
+</section>
+<section id="add-an-import-type" class="level3">
+<h3>Add an import type</h3>
+<ol type="1">
+<li>Extend preview/confirm logic in <code>imports/views.py</code></li>
+<li>Add template CSV in <code>import_templates/</code></li>
+<li>Update <code>Import.js</code> type dropdown</li>
+</ol>
+<hr />
+</section>
+</section>
+<section id="production-security-checklist" class="level2">
+<h2>15. Production &amp; Security Checklist</h2>
+<p>Before going live:</p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Set
+<code>DEBUG=False</code></label></li>
+<li><label><input type="checkbox" />Strong
+<code>DJANGO_SECRET_KEY</code> from env</label></li>
+<li><label><input type="checkbox" />Restrict <code>ALLOWED_HOSTS</code>
+and <code>CORS_ALLOWED_ORIGINS</code></label></li>
+<li><label><input type="checkbox" />Use PostgreSQL (or MySQL), not
+SQLite</label></li>
+<li><label><input type="checkbox" />HTTPS everywhere (cookies
+secure)</label></li>
+<li><label><input type="checkbox" />Do not commit
+<code>google_credentials.json</code> or <code>.env</code></label></li>
+<li><label><input type="checkbox" />Run
+<code>python manage.py check --deploy</code></label></li>
+<li><label><input type="checkbox" />Serve React <code>build/</code> via
+nginx or CDN; API on separate subdomain if needed</label></li>
+<li><label><input type="checkbox" />Back up database
+regularly</label></li>
+<li><label><input type="checkbox" />Pin all dependencies including
+optional ones in requirements.txt</label></li>
+</ul>
+<hr />
+</section>
+<section id="glossary" class="level2">
+<h2>16. Glossary</h2>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SPA</strong></td>
+<td>Single Page Application — React loads once, routes client-side</td>
+</tr>
+<tr>
+<td><strong>DRF</strong></td>
+<td>Django REST Framework</td>
+</tr>
+<tr>
+<td><strong>ViewSet</strong></td>
+<td>DRF class combining list/create/retrieve/update/destroy</td>
+</tr>
+<tr>
+<td><strong>Serializer</strong></td>
+<td>Converts models ↔︎ JSON; validates input</td>
+</tr>
+<tr>
+<td><strong>Migration</strong></td>
+<td>Versioned DB schema change</td>
+</tr>
+<tr>
+<td><strong>CORS</strong></td>
+<td>Browser security for cross-origin API calls</td>
+</tr>
+<tr>
+<td><strong>CSRF</strong></td>
+<td>Token preventing forged form submissions</td>
+</tr>
+<tr>
+<td><strong>Session</strong></td>
+<td>Server-side login state referenced by cookie</td>
+</tr>
+<tr>
+<td><strong>FK</strong></td>
+<td>ForeignKey — relational link between tables</td>
+</tr>
+<tr>
+<td><strong>PROTECT</strong></td>
+<td>on_delete — block delete if children exist</td>
+</tr>
+<tr>
+<td><strong>CRA</strong></td>
+<td>Create React App — webpack-based React starter</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</section>
+<section id="quick-reference-tables" class="level2">
+<h2>17. Quick Reference Tables</h2>
+<section id="role-feature-matrix" class="level3">
+<h3>Role → feature matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: center;">Admin</th>
+<th style="text-align: center;">Operator</th>
+<th style="text-align: center;">Cook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User management</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">No</td>
+</tr>
+<tr>
+<td>Imports / Google Sync</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">No</td>
+</tr>
+<tr>
+<td>Customers, orders, payments, reports, offerings</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">No</td>
+</tr>
+<tr>
+<td>Product read</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td>Product write / costs</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="order-status-values" class="level3">
+<h3>Order status values</h3>
+<p><code>draft</code> → <code>confirmed</code> → <code>preparing</code>
+→ <code>ready</code> → <code>delivered</code> → <code>completed</code>
+(or <code>cancelled</code>)</p>
+</section>
+<section id="payment-status-values" class="level3">
+<h3>Payment status values</h3>
+<p><code>pending</code>, <code>partial</code>, <code>paid</code>,
+<code>refunded</code> (auto-updated from Payment rows)</p>
+</section>
+<section id="key-file-index" class="level3">
+<h3>Key file index</h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Settings</td>
+<td>soupssnacks/settings.py</td>
+</tr>
+<tr>
+<td>Root URLs</td>
+<td>soupssnacks/urls.py</td>
+</tr>
+<tr>
+<td>Permissions</td>
+<td>accounts/permissions.py</td>
+</tr>
+<tr>
+<td>API client</td>
+<td>frontend/src/services/api.js</td>
+</tr>
+<tr>
+<td>Routes</td>
+<td>frontend/src/App.js</td>
+</tr>
+<tr>
+<td>Google sync service</td>
+<td>integrations/google_sheets_service.py</td>
+</tr>
+<tr>
+<td>Import logic</td>
+<td>imports/views.py</td>
+</tr>
+<tr>
+<td>Reports</td>
+<td>reports/views.py</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</section>
+</section>
+<section id="document-maintenance" class="level2">
+<h2>Document maintenance</h2>
+<p>When you add major features, update this file and regenerate the
+PDF:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> docs</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> build_reference_pdf.py</span></code></pre></div>
+<hr />
+<p><em>End of reference document — SoupsSnacks v2</em></p>
+</section>
+</section>
+      </article>
+      <footer class="doc-footer">
+        SoupsSnacks v2 — generated from SOUPSSNACKS_FULL_STACK_REFERENCE.md
+      </footer>
+    </main>
+  </div>
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">↑</button>
+  <script>
+(function () {
+  const root = document.documentElement;
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToc = document.getElementById('sidebar-toc');
+  const content = document.getElementById('content');
+  const pandocToc = document.getElementById('TOC');
+  const backToTop = document.getElementById('back-to-top');
+
+  // Move pandoc TOC into sidebar; remove duplicate manual TOC section if present
+  if (pandocToc) {
+    sidebarToc.appendChild(pandocToc);
+  }
+
+  // Remove the manual markdown TOC block (section titled "Table of Contents")
+  content.querySelectorAll('h2').forEach(function (h2) {
+    if (h2.textContent.trim().toLowerCase() === 'table of contents') {
+      var el = h2;
+      while (el) {
+        var next = el.nextElementSibling;
+        el.remove();
+        if (!next || next.tagName === 'H2') break;
+        el = next;
+      }
+    }
+  });
+
+  // Theme
+  var savedTheme = localStorage.getItem('soupssnacks-doc-theme');
+  if (savedTheme === 'dark') root.setAttribute('data-theme', 'dark');
+
+  document.getElementById('toggle-theme').addEventListener('click', function () {
+    var isDark = root.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      root.removeAttribute('data-theme');
+      localStorage.setItem('soupssnacks-doc-theme', 'light');
+    } else {
+      root.setAttribute('data-theme', 'dark');
+      localStorage.setItem('soupssnacks-doc-theme', 'dark');
+    }
+  });
+
+  // Mobile nav
+  document.getElementById('toggle-nav').addEventListener('click', function () {
+    sidebar.classList.toggle('open');
+  });
+
+  sidebarToc.addEventListener('click', function (e) {
+    if (window.innerWidth <= 900 && e.target.closest('a')) {
+      sidebar.classList.remove('open');
+    }
+  });
+
+  // Back to top
+  window.addEventListener('scroll', function () {
+    backToTop.classList.toggle('visible', window.scrollY > 400);
+  });
+  backToTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Highlight active TOC link on scroll
+  var headings = Array.from(content.querySelectorAll('h2, h3'));
+  var tocLinks = sidebarToc.querySelectorAll('a');
+  if (headings.length && tocLinks.length) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var id = entry.target.id;
+          tocLinks.forEach(function (a) {
+            a.style.fontWeight = a.getAttribute('href') === '#' + id ? '700' : '';
+            a.style.color = a.getAttribute('href') === '#' + id ? 'var(--link-hover)' : '';
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    headings.forEach(function (h) { if (h.id) observer.observe(h); });
+  }
+})();
+  </script>
+</body>
+</html>

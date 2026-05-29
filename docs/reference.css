@@ -1,0 +1,469 @@
+/* SoupsSnacks Reference — standalone documentation theme */
+
+:root {
+  --bg: #faf8f5;
+  --bg-sidebar: #fff9f0;
+  --bg-code: #f4f0ea;
+  --text: #2c2416;
+  --text-muted: #6b5d4d;
+  --primary: #c45c26;
+  --primary-dark: #9a4520;
+  --accent: #d4a017;
+  --border: #e8dfd0;
+  --link: #b45309;
+  --link-hover: #92400e;
+  --table-stripe: #fdf6ec;
+  --shadow: 0 2px 12px rgba(44, 36, 22, 0.08);
+  --radius: 8px;
+  --font-sans: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
+  --sidebar-width: 280px;
+  --content-max: 920px;
+}
+
+[data-theme="dark"] {
+  --bg: #1a1612;
+  --bg-sidebar: #221c16;
+  --bg-code: #2a231c;
+  --text: #f5efe6;
+  --text-muted: #b8a894;
+  --primary: #e07a3a;
+  --primary-dark: #c45c26;
+  --accent: #e8b84a;
+  --border: #3d3428;
+  --link: #f0a050;
+  --link-hover: #ffb366;
+  --table-stripe: #241e18;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ── Layout shell ── */
+.doc-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.doc-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 1.25rem 1rem 2rem;
+  z-index: 100;
+}
+
+.doc-sidebar-header {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--primary);
+}
+
+.doc-sidebar-header h1 {
+  font-size: 1.05rem;
+  margin: 0 0 0.25rem;
+  color: var(--primary-dark);
+  line-height: 1.3;
+}
+
+.doc-sidebar-header .subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.doc-main {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  padding: 2rem 2.5rem 4rem;
+  max-width: calc(var(--content-max) + var(--sidebar-width) + 5rem);
+}
+
+.doc-content {
+  max-width: var(--content-max);
+}
+
+/* ── Sidebar TOC (pandoc #TOC) ── */
+#TOC {
+  font-size: 0.82rem;
+}
+
+#TOC > ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+#TOC ul ul {
+  padding-left: 1rem;
+  margin-top: 0.15rem;
+}
+
+#TOC li {
+  margin: 0.2rem 0;
+}
+
+#TOC a {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: block;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+#TOC a:hover {
+  color: var(--link-hover);
+  background: rgba(196, 92, 38, 0.08);
+}
+
+#TOC > ul > li > a {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Top bar (mobile + theme toggle) ── */
+.doc-topbar {
+  display: none;
+  position: sticky;
+  top: 0;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  z-index: 200;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.doc-topbar-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--primary-dark);
+}
+
+.doc-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.btn-icon:hover {
+  background: rgba(196, 92, 38, 0.1);
+  border-color: var(--primary);
+}
+
+/* ── Typography ── */
+.doc-content h1 {
+  font-size: 2rem;
+  color: var(--primary-dark);
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.doc-content h2 {
+  font-size: 1.45rem;
+  color: var(--primary-dark);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 1.5rem;
+}
+
+.doc-content h3 {
+  font-size: 1.15rem;
+  color: var(--text);
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 1.5rem;
+}
+
+.doc-content h4 {
+  font-size: 1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.doc-content p {
+  margin: 0.75rem 0;
+}
+
+.doc-content strong {
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.doc-content a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.doc-content a:hover {
+  color: var(--link-hover);
+}
+
+.doc-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* ── Meta block at top ── */
+.doc-meta {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  font-size: 0.92rem;
+}
+
+.doc-meta p {
+  margin: 0.25rem 0;
+}
+
+/* ── Lists ── */
+.doc-content ul,
+.doc-content ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.doc-content li {
+  margin: 0.35rem 0;
+}
+
+.doc-content li > ul,
+.doc-content li > ol {
+  margin: 0.25rem 0;
+}
+
+/* Task lists */
+.doc-content input[type="checkbox"] {
+  margin-right: 0.4rem;
+  accent-color: var(--primary);
+}
+
+/* ── Tables ── */
+.doc-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.92rem;
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.doc-content thead {
+  background: var(--primary);
+  color: #fff;
+}
+
+.doc-content th {
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+.doc-content td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-content tbody tr:nth-child(even) {
+  background: var(--table-stripe);
+}
+
+.doc-content tbody tr:hover {
+  background: rgba(196, 92, 38, 0.06);
+}
+
+/* ── Code ── */
+.doc-content code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--bg-code);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: var(--primary-dark);
+}
+
+.doc-content pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  box-shadow: var(--shadow);
+}
+
+.doc-content pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+  font-size: inherit;
+}
+
+/* Pandoc syntax highlighting */
+.doc-content pre.sourceCode {
+  background: #2d2a24;
+  border-color: #3d3a32;
+}
+
+.doc-content pre.sourceCode code {
+  color: #f5efe6;
+}
+
+/* ASCII diagrams in plain pre */
+.doc-content pre:not(.sourceCode) {
+  font-family: var(--font-mono);
+  white-space: pre;
+  color: var(--text);
+}
+
+/* ── Blockquotes ── */
+.doc-content blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 4px solid var(--accent);
+  background: var(--bg-sidebar);
+  color: var(--text-muted);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* ── Back to top ── */
+.back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 300;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.back-to-top:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* ── Footer ── */
+.doc-footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Print ── */
+@media print {
+  .doc-sidebar,
+  .doc-topbar,
+  .back-to-top,
+  .doc-controls {
+    display: none !important;
+  }
+
+  .doc-main {
+    margin-left: 0;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .doc-content h2 {
+    page-break-after: avoid;
+  }
+
+  .doc-content pre,
+  .doc-content table {
+    page-break-inside: avoid;
+  }
+}
+
+/* ── Mobile ── */
+@media (max-width: 900px) {
+  .doc-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: var(--shadow);
+  }
+
+  .doc-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .doc-main {
+    margin-left: 0;
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  .doc-topbar {
+    display: flex;
+  }
+
+  .doc-content h1 {
+    font-size: 1.55rem;
+  }
+
+  .doc-content table {
+    font-size: 0.82rem;
+    display: block;
+    overflow-x: auto;
+  }
+}

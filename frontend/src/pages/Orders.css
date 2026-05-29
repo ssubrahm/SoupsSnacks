@@ -3,6 +3,72 @@
   animation: fadeIn 0.4s ease-in;
 }
 
+.orders-stats-cards {
+  margin-bottom: 0.75rem;
+}
+
+.orders-quick-filters {
+  margin-bottom: 0;
+}
+
+.orders-filters-inner {
+  padding: 0;
+}
+
+.orders-filters-inner .search-box {
+  margin-bottom: 0.85rem;
+}
+
+.orders-filter-row {
+  align-items: flex-end;
+}
+
+.filter-group-product {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.filter-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.filter-date {
+  min-width: 140px;
+}
+
+.clear-filters-btn {
+  align-self: flex-end;
+  white-space: nowrap;
+}
+
+.orders-list-panel .collapsible-body {
+  padding: 0;
+}
+
+.orders-list-panel .orders-table-container {
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.orders-list-panel .loading,
+.orders-list-panel .error-message,
+.orders-list-panel .empty-state {
+  padding: 1.25rem;
+}
+
 .quick-filters {
   display: flex;
   gap: 0.75rem;
