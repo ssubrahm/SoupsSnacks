@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../services/api';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import { extensionForMimeType } from '../utils/voiceSupport';
 import JeevesIcon from '../components/JeevesIcon';
 import { renderAssistantData } from '../components/assistant/AssistantResults';
 import '../components/JeevesIcon.css';
@@ -26,7 +27,7 @@ const Assistant = () => {
   const [loading, setLoading] = useState(false);
   const [starters, setStarters] = useState([]);
   const [llmEnabled, setLlmEnabled] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [voiceServerEnabled, setVoiceServerEnabled] = useState(false);
   const [error, setError] = useState('');
   const [voiceError, setVoiceError] = useState('');
   const [sessionId, setSessionId] = useState(null);
@@ -68,10 +69,17 @@ const Assistant = () => {
         // Soft hint — not a hard failure
         setVoiceError("Didn't hear anything — tap the mic and speak clearly.");
         break;
+      case 'safari-needs-server':
+        setVoiceError(
+          'Safari needs server-side transcription. Add OPENAI_API_KEY to your .env file, restart Django, then try again.',
+        );
+        break;
+      case 'unsupported':
+        setVoiceError('Voice input is not supported in this browser. Try Chrome, Edge, or Safari with OPENAI_API_KEY configured.');
+        break;
       case 'network':
         setVoiceError(
-          'Browser speech service unreachable (Chrome sends audio to Google, separate from normal internet). '
-          + 'Add OPENAI_API_KEY to .env for reliable server-side voice, or type your question.',
+          'Browser speech service unreachable. Add OPENAI_API_KEY to .env for reliable voice on all browsers, or type your question.',
         );
         break;
       case 'transcribe-failed':
@@ -95,8 +103,9 @@ const Assistant = () => {
   }, []);
 
   const transcribeAudio = useCallback(async (blob) => {
+    const ext = extensionForMimeType(blob.type);
     const form = new FormData();
-    form.append('audio', blob, 'recording.webm');
+    form.append('audio', blob, `recording.${ext}`);
     const res = await api.post('/assistant/transcribe/', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
@@ -107,7 +116,8 @@ const Assistant = () => {
     onResult: handleVoiceResult,
     onInterim: handleVoiceInterim,
     onError: handleVoiceError,
-    transcribeAudio: voiceEnabled ? transcribeAudio : null,
+    transcribeAudio: voiceServerEnabled ? transcribeAudio : null,
+    serverTranscriptionEnabled: voiceServerEnabled,
   });
 
   const handleToggleVoice = useCallback(() => {
@@ -134,7 +144,7 @@ const Assistant = () => {
       const res = await api.get(url);
       setStarters(res.data.starters || []);
       setLlmEnabled(res.data.llm_enabled);
-      setVoiceEnabled(res.data.voice_transcription_enabled ?? res.data.llm_enabled);
+      setVoiceServerEnabled(res.data.voice_transcription_enabled ?? res.data.llm_enabled);
       setSessionId(res.data.session_id);
       setSessions(res.data.sessions || []);
 
@@ -265,7 +275,11 @@ const Assistant = () => {
           <p className="assistant-subtitle">
             Your business valet — plain English answers about orders, customers, and your menu
             {llmEnabled && <span className="ai-badge">AI enhanced</span>}
-            {voiceEnabled && supported && <span className="ai-badge voice-badge">Voice</span>}
+            {supported && (
+              <span className="ai-badge voice-badge">
+                Voice{useServerMode ? ' (all browsers)' : ''}
+              </span>
+            )}
           </p>
         </div>
         <div className="assistant-header-actions">

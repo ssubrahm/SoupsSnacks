@@ -16,6 +16,7 @@ from .export_csv import result_to_csv
 from .intent_parser import parse_with_rules
 from .models import ChatSession
 from .services import handle_message
+from .transcribe import normalize_audio_upload
 
 User = get_user_model()
 
@@ -334,6 +335,11 @@ class AssistantAPITests(TestCase):
                 format='multipart',
             )
             self.assertEqual(response.status_code, 503)
+
+    def test_normalize_safari_mp4_upload(self):
+        filename, content_type = normalize_audio_upload('recording.webm', 'audio/mp4')
+        self.assertEqual(filename, 'recording.m4a')
+        self.assertEqual(content_type, 'audio/mp4')
 
     def test_export_endpoint(self):
         response = self.client.post(

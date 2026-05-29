@@ -1,18 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  extensionForMimeType,
+  pickRecordingMimeType,
+  resolveVoiceMode,
+} from '../utils/voiceSupport';
 
 /** Errors that should not show a scary banner (browser Speech API only). */
 const QUIET_ERRORS = new Set(['aborted', 'interrupted']);
 
-const pickMimeType = () => {
-  if (typeof MediaRecorder === 'undefined') return '';
-  const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
-  return types.find((t) => MediaRecorder.isTypeSupported(t)) || '';
-};
-
 /**
  * Voice input with two modes:
- * - Server (Whisper): record audio → transcribe via backend (reliable, needs OPENAI_API_KEY)
- * - Browser (Speech API): live captions via Chrome/Google (often fires false "network" errors)
+ * - Server (Whisper): record audio → transcribe via backend (Safari, Edge, Chrome — needs OPENAI_API_KEY)
+ * - Browser (Speech API): live captions (Chrome/Edge when no API key)
  */
 export const useVoiceInput = ({
   onResult,
@@ -20,11 +19,17 @@ export const useVoiceInput = ({
   onError,
   lang = 'en-IN',
   transcribeAudio = null,
+  serverTranscriptionEnabled = false,
 }) => {
+  const voiceMode = useMemo(
+    () => resolveVoiceMode({ serverTranscriptionEnabled }),
+    [serverTranscriptionEnabled],
+  );
+  const useServerMode = voiceMode.mode === 'server';
+
   const [listening, setListening] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
-  const [supported, setSupported] = useState(false);
-  const useServerRef = useRef(Boolean(transcribeAudio));
+  const supported = voiceMode.supported;
 
   const recognitionRef = useRef(null);
   const listeningRef = useRef(false);
@@ -38,7 +43,6 @@ export const useVoiceInput = ({
 
   useEffect(() => {
     transcribeRef.current = transcribeAudio;
-    useServerRef.current = Boolean(transcribeAudio);
   }, [transcribeAudio]);
 
   useEffect(() => {
@@ -53,17 +57,9 @@ export const useVoiceInput = ({
     onErrorRef.current = onError;
   }, [onError]);
 
+  // Browser Speech API setup (Chrome/Edge fallback when no server transcribe)
   useEffect(() => {
-    const hasMedia = Boolean(navigator.mediaDevices?.getUserMedia);
-    const hasSpeech = Boolean(
-      window.SpeechRecognition || window.webkitSpeechRecognition,
-    );
-    setSupported(hasMedia || hasSpeech);
-  }, []);
-
-  // Browser Speech API setup (fallback when no server transcribe)
-  useEffect(() => {
-    if (transcribeAudio) return undefined;
+    if (useServerMode) return undefined;
 
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -120,7 +116,7 @@ export const useVoiceInput = ({
       }
       recognitionRef.current = null;
     };
-  }, [lang, transcribeAudio]);
+  }, [lang, useServerMode]);
 
   const stopMediaStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -135,7 +131,7 @@ export const useVoiceInput = ({
       streamRef.current = stream;
       chunksRef.current = [];
 
-      const mimeType = pickMimeType();
+      const mimeType = pickRecordingMimeType();
       const recorder = mimeType
         ? new MediaRecorder(stream, { mimeType })
         : new MediaRecorder(stream);
@@ -148,9 +144,8 @@ export const useVoiceInput = ({
 
       recorder.onstop = async () => {
         stopMediaStream();
-        const blob = new Blob(chunksRef.current, {
-          type: recorder.mimeType || mimeType || 'audio/webm',
-        });
+        const blobType = recorder.mimeType || mimeType || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: blobType });
         chunksRef.current = [];
 
         if (!blob.size || !transcribeRef.current) {
@@ -257,20 +252,24 @@ export const useVoiceInput = ({
   }, []);
 
   const startListening = useCallback(() => {
-    if (useServerRef.current && transcribeRef.current) {
+    if (!supported) {
+      onErrorRef.current?.(voiceMode.reason || 'unsupported');
+      return;
+    }
+    if (useServerMode && transcribeRef.current) {
       startServerRecording();
     } else {
       startBrowserListening();
     }
-  }, [startBrowserListening, startServerRecording]);
+  }, [startBrowserListening, startServerRecording, supported, useServerMode, voiceMode.reason]);
 
   const stopListening = useCallback(() => {
-    if (useServerRef.current && transcribeRef.current) {
+    if (useServerMode && transcribeRef.current) {
       stopServerRecording();
     } else {
       stopBrowserListening();
     }
-  }, [stopBrowserListening, stopServerRecording]);
+  }, [stopBrowserListening, stopServerRecording, useServerMode]);
 
   const toggleListening = useCallback(() => {
     if (listeningRef.current) {
@@ -284,7 +283,8 @@ export const useVoiceInput = ({
     listening,
     transcribing,
     supported,
-    useServerMode: Boolean(transcribeAudio),
+    useServerMode,
+    voiceMode: voiceMode.mode,
     toggleListening,
     stopListening,
     startListening,

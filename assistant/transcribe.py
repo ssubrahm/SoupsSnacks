@@ -10,6 +10,37 @@ import urllib.request
 
 from django.conf import settings
 
+# Whisper accepts common browser capture formats; normalize Safari mp4 uploads.
+MIME_TO_EXT = {
+    'audio/webm': 'webm',
+    'audio/webm;codecs=opus': 'webm',
+    'audio/mp4': 'm4a',
+    'audio/m4a': 'm4a',
+    'audio/x-m4a': 'm4a',
+    'audio/ogg': 'ogg',
+    'audio/ogg;codecs=opus': 'ogg',
+    'audio/wav': 'wav',
+    'audio/x-wav': 'wav',
+    'audio/mpeg': 'mp3',
+    'audio/mp3': 'mp3',
+}
+
+
+def normalize_audio_upload(filename: str, content_type: str) -> tuple[str, str]:
+    """Ensure Whisper receives a filename extension that matches the audio bytes."""
+    mime = (content_type or 'audio/webm').split(';')[0].strip().lower()
+    ext = MIME_TO_EXT.get(mime) or MIME_TO_EXT.get(content_type.lower() if content_type else '')
+    if not ext and '.' in filename:
+        ext = filename.rsplit('.', 1)[-1].lower()
+    if not ext:
+        ext = 'webm'
+    if not filename or '.' not in filename:
+        filename = f'recording.{ext}'
+    elif not filename.lower().endswith(f'.{ext}'):
+        filename = f'recording.{ext}'
+    normalized_mime = content_type or mime or 'audio/webm'
+    return filename, normalized_mime
+
 
 def transcribe_audio(file_bytes: bytes, filename: str = 'audio.webm', content_type: str = 'audio/webm') -> str | None:
     """
@@ -19,6 +50,8 @@ def transcribe_audio(file_bytes: bytes, filename: str = 'audio.webm', content_ty
     api_key = getattr(settings, 'OPENAI_API_KEY', None) or os.getenv('OPENAI_API_KEY')
     if not api_key or not file_bytes:
         return None
+
+    filename, content_type = normalize_audio_upload(filename, content_type)
 
     base_url = getattr(settings, 'OPENAI_BASE_URL', None) or os.getenv(
         'OPENAI_BASE_URL', 'https://api.openai.com/v1'
